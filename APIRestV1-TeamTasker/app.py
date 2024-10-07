@@ -1,26 +1,57 @@
-from flask import Flask
+from flask import Flask, request, jsonify
 from Models.MySQLConnector import MySQLConnector
+from Models.Usuarios import *
+from Models.Tareas import *
 
 app = Flask(__name__)
 
+# Endpoint para que el Administrador de Proyecto cree una tarea grupal, usando el id del proyecto en la ruta
+@app.route('/proyectos/<int:idProyecto>/crear_tarea_grupal', methods=['POST'])
+def crearTareaGrupal(idProyecto):
+    #Primero chequear que la solicitud sea un post
+    if request.method == 'POST':
+        data = request.json
+        idUsuario = data['idUsuario']
 
-@app.route('/')
-def hello_world():  # put application's code here
-    return 'Hello World!'
+        # Se realizara una consulta para verificar que el usuario sea el admin de Proyecto.
+        query = """SELECT admin_id FROM tareaglobal WHERE idProyecto = %s"""
+        result = db.fetch_data(query, (idProyecto,))
+        print(result)
+        if not (result[0][0] == idUsuario):
+            return jsonify({'message': "No es el admin del proyecto"}), 400
+        
+        #Tambien se realizaran verificaciones de que los integrantes y el admin del nuevo grupo pertenezcan al proyecto.
+        idAdminGrupo = data['idAdminGrupo']
+        query = """"""
+        result = db.execute_query(query, (idAdminGrupo,))
+        print(result)
+        if (result[0][0] == False):
+            return jsonify({'message': 'Este usuario no pertenece al proyecto'}), 400
+        
+        integrantes = data['integrantes']
+        for integrante in integrantes:
+            query = """"""
+            result = db.execute_query(query, (integrante, ))
+            if(result[0] == False):
+                print(f"El usuario {integrante} no pertenece al proyecto")
+                return jsonify({'message': 'Este usuario no pertenece al proyecto'}), 400
+        
+        #Se terminan de pedir los demas datos
+        fechaInicio = data['fechaInicio']
+        fechaFin = data['fechaFin']
+        #Verificar formato de que el formato de las fechas sea valido.
+        titulo = data['titulo']
+        descripcion = data['descripcion']
+        tareaGrupal = TareaGrupal()
+        tareaGrupal.crearTareaGrupal(titulo, descripcion, idProyecto, idAdminGrupo, fechaInicio, fechaFin, integrantes, db) 
+        
+        return jsonify({'message': "OK"}), 200
+        
+        
 
+db = MySQLConnector('APIRestV1-TeamTasker\config.json')
+db.connect()
 
 if __name__ == '__main__':
-    #app.run()
-    db = MySQLConnector("config.json")
-    db.connect()
-
-    # Ejecuta consultas o procedimientos almacenados
-    db.execute_query("CREATE TABLE IF NOT EXISTS test_table (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255))")
-
-    db.execute_query("INSERT INTO test_table (name) VALUES (%s)", ("Ejemplo",))
-
-    data = db.fetch_data("SELECT * FROM test_table")
-    print(data)
-
-    # Cierra la conexión
-    db.disconnect()
+    app.run(port=3000,debug=True)
+    

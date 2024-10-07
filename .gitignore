@@ -7,7 +7,7 @@
 
 # Idea folder in every directory contained within root
 **/.idea/
-
+**/.venv
 # User-specific stuff
 .idea/**/workspace.xml
 .idea/**/tasks.xml

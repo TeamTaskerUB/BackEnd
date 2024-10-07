@@ -22,10 +22,10 @@ class MySQLConnector:
         try:
             with open(config_file, 'r') as file:
                 config = json.load(file)
-                self.host = config["host"]
-                self.user = config["user"]
-                self.password = config["password"]
-                self.database = config["database"]
+                self.host = config['host']
+                self.user = config['user']
+                self.password = config['password']
+                self.database = config['database']
         except Exception as ex:
             print(f"Error al cargar el archivo de configuracion: {ex}")
 
