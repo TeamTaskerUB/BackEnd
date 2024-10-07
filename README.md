@@ -24,5 +24,9 @@ A continuación se describen los endpoints disponibles en la API (por ahora):
     - **Respuesta**: `201 Created` con los detalles del nuevo usuario.
 
 ### Gestión de Usuarios
-
+### Gestión de Grupos
+- **POST /<int:idProyecto>/crear_tarea_grupal**:
+    - **Descripción**: Crea una tarea grupal.
+    - **Parámetros**: `idProyecto`, `idAdminGrupo`, `integrantes`, `fechaInicio`, `fechaFin`, `titulo`, `descripcion`
+    - **Respuesta**: `200 OK` y redirige a menu de proyecto.
 ### Gestión de tareas
