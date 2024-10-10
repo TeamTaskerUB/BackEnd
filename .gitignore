@@ -138,3 +138,7 @@ fabric.properties
 # Ignore all local history of files
 .history
 .ionide
+
+#archivos que rompen la pija
+.DS_Store
+api-ttv1/
