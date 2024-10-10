@@ -139,3 +139,6 @@ fabric.properties
 #archivos que rompen la pija
 .DS_Store
 api-ttv1/
+
+APIRestV1-TeamTasker/config.json
+
