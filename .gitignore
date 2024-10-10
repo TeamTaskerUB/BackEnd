@@ -140,5 +140,6 @@ fabric.properties
 .DS_Store
 api-ttv1/
 
-APIRestV1-TeamTasker/config.json
+/APIRestV1-TeamTasker/config.json
+./APIRestV1-TeamTasker/config.json
 
