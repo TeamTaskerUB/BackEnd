@@ -35,13 +35,16 @@ class TareaGrupal(Tarea):
         dbConnection.execute_query(query,(nombre, descripcion, idTareaGlobal, idUserLider, fecha_inicio, fecha_fin, 0, "",1,1))
         print("Consulta ejecutada correctamente")
 
-        #Se le asigna a los integrantes esta tarea grupal.
-        query = ""
+        #Se le asignara a los integrantes esta tarea grupal.
+        query = "get_id_grupo_proyecto"
         result = dbConnection.execute_stored_procedure(query, (idTareaGlobal, nombre))
         if not result:
             return "Error: Grupo no encontrado"
         self.idTarea = result[0][0]
-        dbConnection.execute_stored_procedure("set_grupo_proyecto_usuario", (self.idTarea, nombre))
+        for integrante in integrantes:
+            result = dbConnection.fetch_data("SELECT set_grupo_proyecto_usuario(%s, %s)", (self.idTarea, integrante))
+            if result == None:
+                return "Error: No se pudo agregar la tarea grupal al integrante"
         return "OK"
     
     def getTareasUnitarias(self, dbConnection):
@@ -56,7 +59,7 @@ class TareaGrupal(Tarea):
             print(f"Tarea ID: {tarea}")
     
     def asignarTareaGrupal(self, dbConnection):
-        data_tareagrupal = dbConnection.execute_stored_procedure("""""", (self.idTareaGlobal, self.nombre))
+        data_tareagrupal = dbConnection.execute_stored_procedure("get_id_grupo_proyecto", (self.idTareaGlobal, self.nombre))
         self.idTarea = data_tareagrupal[0][0]
         self.descripcion = data_tareagrupal[0][2]
         self.estado = data_tareagrupal[0][10]
