@@ -50,7 +50,25 @@ def crearTareaGrupal(idTareaGlobal):
             return jsonify({'message': "OK"}), 200
         else:
             return jsonify({"message": "Error al crear tarea grupal"}), 401
+    return jsonify({'message': 'Metodo no valido'}), 405
 
+@app.route('/<int:idTareaGlobal>/eliminar_tarea_grupal', methods=['DELETE'])
+def eliminarTareaGrupal(idTareaGlobal):
+    if request.method == 'DELETE':
+        data = request.json
+        idUsuario = data['idUsuario']
+        # Verificacion general con los datos absolutamente necesarios.
+        if not idUsuario:
+            return jsonify({'message': 'Faltan campos obligatorios'}), 400
+        
+        # Se realizara una consulta para verificar que el usuario sea el admin de Proyecto.
+        query = """SELECT admin_id FROM tareaglobal WHERE idProyecto = %s"""
+        result = db.fetch_data(query, (idTareaGlobal,))
+        if not (result[0][0] == idUsuario):
+            return jsonify({'message': "No es el admin del proyecto"}), 401
+        
+        return
+    return jsonify({'message': 'Metodo no valido'}), 405
 db = MySQLConnector('APIRestV1-TeamTasker\config.json')
 db.connect()
 
