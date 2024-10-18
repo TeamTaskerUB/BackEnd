@@ -21,7 +21,8 @@ def crearTareaGrupal(idTareaGlobal):
         # Verificacion general con los datos absolutamente necesarios.
         if not idUsuario or not idAdminGrupo or not (fechaFin and fechaInicio) or not titulo:
             return jsonify({'message': 'Faltan campos obligatorios'}), 400
-        
+        if not descripcion:
+            descripcion = ""
         # Se realizara una consulta para verificar que el usuario sea el admin de Proyecto.
         query = """SELECT admin_id FROM tareaglobal WHERE idProyecto = %s"""
         result = db.fetch_data(query, (idTareaGlobal,))
@@ -32,7 +33,7 @@ def crearTareaGrupal(idTareaGlobal):
         result = db.execute_stored_procedure("get_usuarios_proyecto", (idTareaGlobal,))
         integrantes = data['integrantes']
         for usuario in result:
-            if not usuario[0] in integrantes or not usuario[0] == idAdminGrupo:
+            if not usuario[0] in integrantes or not usuario[0] == idAdminGrupo or not usuario[0] == idUsuario:
                 return jsonify({'message': 'El integrante ' + usuario[1] + ' no pertenece al proyecto'}), 401
         
         #Verificar formato de que el formato de las fechas sea valido.
