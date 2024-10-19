@@ -1,5 +1,5 @@
-from mysql.connector import Error
- 
+from Models.MySQLConnector import MySQLConnector
+
 # Clase Tarea (Clase base)
 class Tarea:
     def __init__(self):
@@ -24,27 +24,33 @@ class TareaGrupal(Tarea):
         self.tareasUnitarias = None
 
     # Funcion para crear Tareas Grupales
-    def crearTareaGrupal(self, nombre, descripcion, idTareaGlobal, idUserLider, fecha_inicio, fecha_fin, integrantes, dbConnection):
+    def crearTareaGrupal(self, nombre, descripcion, idTareaGlobal, idUserLider, fecha_inicio, fecha_fin, integrantes, dbConnection: MySQLConnector):
         self.idTareaGlobal = idTareaGlobal
         self.nombre = nombre
         
-        query = """
-        INSERT INTO tareagrupal (nombre, descripcion, idProyecto, admin, dateIn, dateEnd, completada, estado, etiqueta, prioridad)
+        query = """INSERT INTO tareagrupal (nombre, descripcion, idProyecto, admin, dateIn, dateEnd, completada, estado, etiqueta, prioridad)
         VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
 
         dbConnection.execute_query(query,(nombre, descripcion, idTareaGlobal, idUserLider, fecha_inicio, fecha_fin, 0, "",1,1))
         print("Consulta ejecutada correctamente")
 
         #Se le asignara a los integrantes esta tarea grupal.
-        query = "get_id_grupo_proyecto"
+        """query = "get_id_grupo_proyecto"
         result = dbConnection.execute_stored_procedure(query, (idTareaGlobal, nombre))
-        if not result:
+        if result == None:
             return "Error: Grupo no encontrado"
-        self.idTarea = result[0][0]
+        try:
+            self.idTarea = result[0][0]
+        except Exception as e:
+            return f"Error: {e}" """
+        self.idTarea = 42
         for integrante in integrantes:
             result = dbConnection.fetch_data("SELECT set_grupo_proyecto_usuario(%s, %s)", (self.idTarea, integrante))
-            if result == None:
-                return "Error: No se pudo agregar la tarea grupal al integrante"
+            try:
+                if result[0][0] == 1:
+                    return "OK"
+            except:
+                return "Error: Al agregar"
         return "OK"
     
     def getTareasUnitarias(self, dbConnection):

@@ -9,7 +9,6 @@ BEGIN
     SET @project_id = -1;
     SET @check_user_id = -1;
     
-    #Se fija que los IDs ingresados sean válidos (números positivos.)
 	IF idTareaGrupal < 0 THEN
 		SIGNAL SQLSTATE '45000'
 			SET MESSAGE_TEXT = 'idTareaGrupal es un valor inválido. Ingrese un número mayor a 0.';
@@ -46,12 +45,12 @@ DELIMITER //
 CREATE FUNCTION teamtasker.modify_grupo_usuario (idTareaGrupalAnterior INT, idTareaGrupalNueva INT, idUsuario INT)
 RETURNS TINYINT
 BEGIN
-	DECLARE project_id INT; DECLARE check_user_id INT;
+	DECLARE project_id INT; DECLARE check_id INT;
     SET @project_id = -1;
     SET @check_id = -1;
     
     #Se fija que los IDs ingresados sean válidos (números positivos.)
-    IF idTareaGrupal < 0 THEN
+    IF idTareaGrupalAnterior < 0 THEN
 		SIGNAL SQLSTATE '45000'
 			SET MESSAGE_TEXT = 'idTareaGrupal es un valor inválido. Ingrese un número mayor a 0.';
     END IF;

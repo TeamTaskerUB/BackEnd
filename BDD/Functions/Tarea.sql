@@ -14,7 +14,7 @@ BEGIN
         -- Actualizamos la prioridad de la tarea
         UPDATE TareaUnitaria
         SET prioridad = nuevaPrioridad
-        WHERE idTareaUnitaria = idTareaUnitaria;
+        WHERE idTareaUnitaria = idTareaUnitaria LIMIT 1;
         
         SET resultado = 'La prioridad ha sido modificada exitosamente.';
     ELSE
@@ -43,7 +43,7 @@ BEGIN
         -- Actualizamos la tarea con el usuario asignado
         UPDATE TareaUnitaria
         SET usuario = idUsuario
-        WHERE idTareaUnitaria = idTareaUnitaria;
+        WHERE idTareaUnitaria = idTareaUnitaria LIMIT 1;
         
         SET resultado = 'La tarea ha sido asignada exitosamente al usuario.';
     ELSE
@@ -71,7 +71,7 @@ BEGIN
         -- Actualizamos la tarea con la etiqueta
         UPDATE TareaUnitaria
         SET etiqueta = etiqueta
-        WHERE idTareaUnitaria = idTareaUnitaria;
+        WHERE idTareaUnitaria = idTareaUnitaria LIMIT 1;
         
         SET resultado = 'La etiqueta ha sido asignada exitosamente a la tarea.';
     ELSE
@@ -82,6 +82,8 @@ BEGIN
 END //
 
 DELIMITER ;
+
+DELIMITER //
 
 DELIMITER //
 
@@ -96,13 +98,14 @@ DETERMINISTIC
 BEGIN
     DECLARE cuenta INT;
 
+    -- Contar las tareas donde el progreso es 100 (tareas completadas)
     SELECT COUNT(*) INTO cuenta
     FROM TareaUnitaria
     WHERE usuario = idUsuario
     AND idTareaGlobal = idTareaGlobal
     AND dateIn >= fechaIni
     AND dateEnd <= fechaEnd
-    AND completada = 1;
+    AND progreso = 100;  -- Progreso de 100 marca la tarea como completada
 
     RETURN cuenta;
 END //
