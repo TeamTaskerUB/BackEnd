@@ -44,14 +44,14 @@ def crearTareaGrupal(idTareaGlobal):
         if not check == "OK":
             return check, 401
         
-        #Verificar formato de que el formato de las fechas sea valido. Y pasar el string a un int
-        check, fechaInicio, fechaFin = verificarFechas(fechaInicio, fechaFin)
-        if not check == "OK":
-            return check, fechaInicio
-        
         # Instanciar la tarea grupal y pasarle los parametros que se enviaron y comprobaron.
         tareaGrupal = TareaGrupal()
-        result = tareaGrupal.crearTareaGrupal(nombre, descripcion, idTareaGlobal, idAdminGrupo, fechaInicio, fechaFin, integrantes, db) 
+        #Verificar formato de que el formato de las fechas sea valido. Y pasar el string a un int
+        check = tareaGrupal.verificarFechas(fechaInicio, fechaFin)
+        if not check == "OK":
+            return check
+        
+        result = tareaGrupal.crearTareaGrupal(nombre, descripcion, idTareaGlobal, idAdminGrupo, integrantes, db) 
         if (result == "OK"):
             return jsonify({'message': "OK"}), 200
         else:
@@ -59,22 +59,68 @@ def crearTareaGrupal(idTareaGlobal):
         
     return jsonify({'message': 'Metodo no valido'}), 405
 
-#Endpoint con el cual se podra eliminar una tarea grupal.
-@app.route('/<int:idTareaGlobal>/eliminar_tarea_grupal', methods=['DELETE'])
-def eliminarTareaGrupal(idTareaGlobal):
+# Endpoint para que el Administrador de Proyecto elimine una tarea grupal
+@app.route('/<int:idTareaGrupal>/eliminar_tarea_grupal', methods=['DELETE'])
+def eliminarTareaGrupal(idTareaGrupal):
     if request.method == 'DELETE':
         data = request.json
         idUsuario = data['idUsuario']
-        idTareaGrupal = data['idTareaGrupal']
-        if not (idUsuario and idTareaGrupal):
-            return jsonify({'message': 'Faltan campos obligatorios'}), 400
+        accion = data.get('accion', 'continuar')  # Opción seleccionada por el usuario ('continuar' o 'asignar')
+
+        # Obtener el idTareaGlobal asociado a la tarea grupal
+        query = """SELECT idProyecto FROM tareagrupal WHERE idGrupo = %s"""
+        tareaGlobalResult = db.fetch_data(query, (idTareaGrupal,))
+
+        if not tareaGlobalResult or len(tareaGlobalResult) == 0:
+            return jsonify({'message': 'Tarea grupal no encontrada'}), 404
+
+        idTareaGlobal = tareaGlobalResult[0][0]
+
+        # Verificar que el idUsuario sea el admin del proyecto que puede eliminar la tarea
         check = verificarAdminProyecto(db, idUsuario, idTareaGlobal)
         if not check == "OK":
-            return check
+            return check, 401
+
+        # Obtener la tarea grupal y sus tareas unitarias
         tareaGrupal = TareaGrupal()
-        tareaGrupal.asignarTareaGrupal(db)
-        return
-    return jsonify({'message': 'Metodo no valido'}), 405
+        tareaGrupal.idTarea = idTareaGrupal  # Asignar el id de la tarea grupal que se desea eliminar
+        tareasUnitarias = tareaGrupal.getTareasUnitarias(db)
+
+        # Verificar si hay tareas unitarias asociadas a la tarea grupal
+        if tareasUnitarias:
+            # Verificar si las tareas unitarias han comenzado (suponiendo que el progreso indica si han comenzado)
+            tareasEmpezadas = [tarea for tarea in tareasUnitarias if tarea['etiqueta'] == "Inactiva"]
+
+            if tareasEmpezadas:
+                if accion == 'asignar':
+                    # Lógica para asignar las tareas unitarias a otros grupos
+                    nuevosGrupos = data.get('nuevosGrupos', [])
+                    if not nuevosGrupos or len(nuevosGrupos) != len(tareasUnitarias):
+                        return jsonify({'message': 'No se han asignado todas las tareas a nuevos grupos'}), 400
+
+                    # Asignar las tareas a los nuevos grupos
+                    for tarea, nuevoGrupo in zip(tareasUnitarias, nuevosGrupos):
+                        query = "UPDATE tareaunitaria SET grupo = %s WHERE idTareaUnitaria = %s"
+                        db.execute_query(query, (nuevoGrupo, tarea['idTareaUnitaria']))
+
+                elif accion == 'continuar':
+                    # El usuario decide continuar sin asignar las tareas, se elimina la tarea grupal
+                    pass
+                else:
+                    # En caso de que no se seleccione ninguna acción válida
+                    return jsonify({'message': 'Acción no válida'}), 400
+
+        # Proceder con la eliminación de la tarea grupal
+        query = """DELETE FROM tareagrupal WHERE idGrupo = %s"""
+        result = db.execute_query(query, (idTareaGrupal,))
+
+        if result == "OK":
+            return jsonify({'message': 'Tarea grupal eliminada correctamente'}), 200
+        else:
+            return jsonify({'message': 'Error al eliminar la tarea grupal'}), 500
+
+    return jsonify({'message': 'Método no válido'}), 405
+
 
 #Funcion para verificar que el id pertenece al del admin del proyecto
 def verificarAdminProyecto(db: MySQLConnector, id: int, idTareaGlobal: int):
@@ -95,32 +141,6 @@ def verificarIntegrantes(db: MySQLConnector, integrantes, idTareaGlobal: int, id
                     return jsonify({'message': f"El integrante {usuario[0]} no pertenece al proyecto"})
     return "OK"
 
-#Funcion para verificar que las fechas esten en el formato necesario.
-def verificarFechas(fechaInicio, fechaFin):
-    #Primero se dividen los strings en listas a base del separador
-    fechaInicio = fechaInicio.split("/")
-    fechaFin = fechaFin.split("/")
-    if not (len(fechaInicio) == 3 and len(fechaFin) == 3):
-        return jsonify({'message': 'Error en la sintaxis'}), 400, 400
-    #Se convierte cada string en un numero
-    for fecha in fechaInicio:
-        try:
-            fecha = int(fecha)
-        except Exception as e:
-            return jsonify({'message': f"Parametro invalido para la fecha de Inicio: {e}"}), 400, 400
-    for fecha in fechaFin:
-        try:
-            fecha = int(fecha)
-        except Exception as e:
-            return jsonify({'message': f"Parametro invalido para la fecha de Fin: {e}"}), 400, 400
-    try:
-        #Para finalizar se pasan al formato indicado.
-        fechaInicio = datetime(int(fechaInicio[0]), int(fechaInicio[1]), int(fechaInicio[2]))
-        fechaFin = datetime(int(fechaFin[0]), int(fechaFin[1]), int(fechaFin[2]))
-    except Exception as e:
-        return jsonify({'message': 'Problema con la sintaxis'}), 400, 400
-    return "OK", fechaInicio, fechaFin
-
 #Verificar que exista una tarea grupal con el mismo nombre
 def existeTareaGrupal(db: MySQLConnector, idTareaGlobal: int, nombre):
     query = """SELECT nombre FROM tareagrupal WHERE idProyecto = %s"""
@@ -132,9 +152,9 @@ def existeTareaGrupal(db: MySQLConnector, idTareaGlobal: int, nombre):
     except:
         return "OK"
     return "OK"
-
-db = MySQLConnector('APIRestV1-TeamTasker\config.json')
-db.connect()   
+db = MySQLConnector('APIRestV1-TeamTasker/config.json')
+db.connect()
 if __name__ == '__main__':
     app.run(port=3000,debug=True)
     
+db.disconnect()
