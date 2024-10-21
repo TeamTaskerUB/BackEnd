@@ -55,7 +55,7 @@ def crearTareaGrupal(idTareaGlobal):
         if (result == "OK"):
             return jsonify({'message': "OK"}), 200
         else:
-            return jsonify({"message": "Error al crear tarea grupal"}), 401
+            return jsonify({"message": "Error al crear tarea grupal"}), 500
         
     return jsonify({'message': 'Metodo no valido'}), 405
 
