@@ -13,7 +13,7 @@ class MySQLConnector:
 
     def __init__(self, config_file="config.json"):
         # Inicializa la clase connector a traves de un json config
-        if not hasattr(self, 'initialized'):  # Esta linea EVITA
+        if not hasattr(self, 'initialized'):  # Esta linea EVITA el inicialize, que se utilizae al mismo tiempo
             self.load_config(config_file)
             self.connection = None
             self.initialized = True
@@ -52,7 +52,7 @@ class MySQLConnector:
             print("Conexión cerrada")
 
     def execute_query(self, query, params=None):
-        # Ejecuta una consulta en la base de datos
+        # le pasapos consultas y que ejecute procedurs, recibe 2 parametros, Ejecuta una consulta en la base de datos
         cursor = None
         try:
             cursor = self.connection.cursor()

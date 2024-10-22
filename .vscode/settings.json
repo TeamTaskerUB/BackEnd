@@ -1,0 +1,43 @@
+{
+    "netbeans.jdkhome": "c:\\Program Files\\Java\\jdk-21",
+    "netbeans.project.jdkhome": "c:\\Program Files\\Java\\jdk-21",
+    "java.jdt.ls.java.home": "c:\\Program Files\\Java\\jdk-21",
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-1.8",
+            "path": "C:\\Users\\Ivan\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\8"
+        },
+        {
+            "name": "JavaSE-11",
+            "path": "C:\\Users\\Ivan\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\11"
+        },
+        {
+            "name": "JavaSE-17",
+            "path": "C:\\Users\\Ivan\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\17",
+            "default": true
+        },
+        {
+            "name": "JavaSE-21",
+            "path": "c:\\Program Files\\Java\\jdk-21"
+        },
+        {
+            "name": "JavaSE-22",
+            "path": "c:\\Program Files\\Java\\jdk-22"
+        },
+        {
+            "name": "JavaSE-23",
+            "path": "C:\\Users\\Ivan\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\latest"
+        }
+    ],
+    "terminal.integrated.env.windows": {
+        "GRAALVM_HOME": "c:\\Users\\Ivan\\Downloads\\graalvm-jdk-21.0.1+12.1",
+        "PATH": "c:\\Program Files\\Java\\jdk-21\\bin;${env:PATH}",
+        "JAVA_HOME": "c:\\Program Files\\Java\\jdk-21"
+    },
+    "maven.terminal.customEnv": [
+        {
+            "environmentVariable": "JAVA_HOME",
+            "value": "c:\\Program Files\\Java\\jdk-21"
+        }
+    ]
+}

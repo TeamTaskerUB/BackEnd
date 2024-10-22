@@ -1,5 +1,5 @@
 {
-   "host": "127.0.0.1",
+   "host": "http://127.0.0.1:3306",
    "user": "root",
    "password": "",
    "database": "apirest"
