@@ -50,7 +50,7 @@ BEGIN
     SET @check_id = -1;
     
     #Se fija que los IDs ingresados sean válidos (números positivos.)
-    IF idTareaGrupalAnterior < 0 THEN
+    IF idTareaGrupal < 0 THEN
 		SIGNAL SQLSTATE '45000'
 			SET MESSAGE_TEXT = 'idTareaGrupal es un valor inválido. Ingrese un número mayor a 0.';
     END IF;

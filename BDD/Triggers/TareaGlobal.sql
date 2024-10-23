@@ -1,7 +1,7 @@
 DELIMITER $$
 
 CREATE TRIGGER after_tareaglobal_delete
-AFTER DELETE ON tareaglobal
+AFTER DELETE ON proyecto
 FOR EACH ROW
 BEGIN
     -- Eliminar las tareas grupales asociadas al proyecto
@@ -19,7 +19,7 @@ DELIMITER ;
 DELIMITER $$
 
 CREATE TRIGGER after_tareaglobal_delete_unlink_users
-AFTER DELETE ON tareaglobal
+AFTER DELETE ON proyecto
 FOR EACH ROW
 BEGIN
     -- Desvincular a los usuarios asociados al proyecto eliminado

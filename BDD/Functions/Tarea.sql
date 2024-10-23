@@ -14,7 +14,7 @@ BEGIN
         -- Actualizamos la prioridad de la tarea
         UPDATE TareaUnitaria
         SET prioridad = nuevaPrioridad
-        WHERE idTareaUnitaria = idTareaUnitaria LIMIT 1;
+        WHERE idTareaUnitaria = idTareaUnitaria;
         
         SET resultado = 'La prioridad ha sido modificada exitosamente.';
     ELSE
@@ -43,7 +43,7 @@ BEGIN
         -- Actualizamos la tarea con el usuario asignado
         UPDATE TareaUnitaria
         SET usuario = idUsuario
-        WHERE idTareaUnitaria = idTareaUnitaria LIMIT 1;
+        WHERE idTareaUnitaria = idTareaUnitaria;
         
         SET resultado = 'La tarea ha sido asignada exitosamente al usuario.';
     ELSE
@@ -71,7 +71,7 @@ BEGIN
         -- Actualizamos la tarea con la etiqueta
         UPDATE TareaUnitaria
         SET etiqueta = etiqueta
-        WHERE idTareaUnitaria = idTareaUnitaria LIMIT 1;
+        WHERE idTareaUnitaria = idTareaUnitaria;
         
         SET resultado = 'La etiqueta ha sido asignada exitosamente a la tarea.';
     ELSE

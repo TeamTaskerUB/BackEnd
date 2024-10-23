@@ -26,7 +26,7 @@ BEGIN
         -- Eliminamos el perfil asignado al usuario
         DELETE FROM Usuario_has_Perfil
         WHERE idUsuario = idUsuario
-        AND idPerfil = idPerfil LIMIT 1;
+        AND idPerfil = idPerfil;
 
         SET resultado = 'El perfil ha sido removido exitosamente del usuario.';
     ELSE
