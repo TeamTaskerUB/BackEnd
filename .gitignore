@@ -139,6 +139,7 @@ fabric.properties
 #archivos que rompen la pija
 .DS_Store
 api-ttv1/
+
 **/__pycache__/
 /APIRestV1-TeamTasker/Models/__pycache__
 
