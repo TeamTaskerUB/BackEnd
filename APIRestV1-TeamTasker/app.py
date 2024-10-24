@@ -102,7 +102,7 @@ def eliminarTareaGrupal(idTareaGrupal):
                             return jsonify({'message': 'No se han asignado todas las tareas a nuevos grupos'}), 400
 
                         # Verificar que todos los nuevos grupos existen en la base de datos
-                        query = "SELECT idGrupo FROM grupos WHERE idGrupo IN (%s)" % ','.join(['%s'] * len(nuevosGrupos))
+                        query = "SELECT idGrupo FROM tareagrupal WHERE idGrupo IN (%s)" % ','.join(['%s'] * len(nuevosGrupos))
                         grupos_existentes = db.fetch_data(query, tuple(nuevosGrupos))
 
                         if len(grupos_existentes) != len(nuevosGrupos):

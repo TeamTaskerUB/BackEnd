@@ -14,6 +14,7 @@ class Tarea:
         self.progreso = None
         self.prioridad = None
         self.etiqueta = None
+        
     #Funcion para verificar que las fechas esten en el formato necesario.
     def verificarFechas(self, fechaInicio, fechaFin):
         #Primero se dividen los strings en listas a base del separador
