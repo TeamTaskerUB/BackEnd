@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
 @Schema()
-export class GrupalTask extends Document {
+export class GroupalTask extends Document {
 
   @Prop({ required: true })
   name: string;
@@ -32,4 +32,4 @@ export class GrupalTask extends Document {
   admin: Types.ObjectId;
 }
 
-export const GroupalTaskSchema = SchemaFactory.createForClass(GrupalTask);
+export const GroupalTaskSchema = SchemaFactory.createForClass(GroupalTask);

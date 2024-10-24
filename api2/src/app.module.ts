@@ -9,7 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TasksModule } from './tasks/tasks.module';
 import { GlobalTaskModule } from './global-task/global-task.module';
-import { GrupalTaskModule } from './grupal-task/grupal-task.module';
+import { GroupalTaskModule } from './groupal-tasks/groupal-task.module';
 
 
 @Module({
@@ -35,7 +35,7 @@ import { GrupalTaskModule } from './grupal-task/grupal-task.module';
     
     GlobalTaskModule,
     
-    GrupalTaskModule
+    GroupalTaskModule
   ],
   controllers: [AppController],
   providers: [AppService],
