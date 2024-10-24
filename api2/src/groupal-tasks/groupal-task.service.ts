@@ -4,17 +4,19 @@ import { Model, Types } from 'mongoose';
 import { GroupalTask } from './schemas/groupal-task.schema';
 import { GlobalTask } from '../global-task/schemas/global-task.schema';
 import { CreateGroupalTaskDto } from './dtos/create-gruopal-task.dto';
+import { Task } from 'src/tasks/schemas/task.schema';
 
 @Injectable()
 export class GroupalTasksService {
   constructor(
     @InjectModel(GroupalTask.name) private readonly groupalTaskModel: Model<GroupalTask>,
     @InjectModel(GlobalTask.name) private readonly globalTaskModel: Model<GlobalTask>,
+    @InjectModel(Task.name) private readonly taskModel: Model<Task>
   ) {}
 
-  async createGroupalTask(globalTaskId: string, createGrupalTaskDto: CreateGroupalTaskDto): Promise<GroupalTask> {
+  async createGroupalTask(globalTaskId: string, createGroupalTaskDto: CreateGroupalTaskDto): Promise<GroupalTask> {
     const groupalTask = new this.groupalTaskModel({
-      ...createGrupalTaskDto,
+      ...createGroupalTaskDto,
     });
 
     const createdGroupalTask = await groupalTask.save();
@@ -25,9 +27,26 @@ export class GroupalTasksService {
     }
 
     // Solo usar createdGroupalTask._id directamente
-    globalTask.grupalTasks.push(createdGroupalTask._id); 
+    globalTask.groupalTasks.push(createdGroupalTask._id); 
     await globalTask.save();
 
     return createdGroupalTask;
+  }
+
+
+  async getGroupalTaskPreview(groupalTaskId: string) {
+    // Buscar la tarea grupal por su ID
+    const groupalTask = await this.groupalTaskModel.findById(groupalTaskId);
+    if (!groupalTask) {
+      throw new NotFoundException(`Groupal Task with ID "${groupalTaskId}" not found`);
+    }
+
+    // Buscar las tareas normales asociadas
+    const tasks = await this.taskModel.find({ _id: { $in: groupalTask.tasks } }).select('name startDate endDate description').exec();
+
+    return {
+      groupalTask: groupalTask.toObject(),
+      tasksPreview: tasks,  // Devolvemos solo la vista previa de las tareas
+    };
   }
 }

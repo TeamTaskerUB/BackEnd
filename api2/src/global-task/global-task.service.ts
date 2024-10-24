@@ -26,7 +26,7 @@ export class GlobalTasksService {
 
     // Obtén las tareas grupales asociadas a la tarea global
     const groupalTasks = await this.groupalTaskModel
-      .find({ _id: { $in: globalTask.grupalTasks } })
+      .find({ _id: { $in: globalTask.groupalTasks } })
       .select('name startDate endDate description') // Solo devuelve los campos necesarios
       .exec();
 

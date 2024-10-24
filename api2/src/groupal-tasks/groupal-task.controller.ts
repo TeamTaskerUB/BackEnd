@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Param, UseGuards, Get, NotFoundException } from '@nestjs/common';
 import { GroupalTasksService } from './groupal-task.service';
 import { CreateGroupalTaskDto } from './dtos/create-gruopal-task.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -14,5 +14,15 @@ export class GroupalTasksController {
     @Body() createGroupalTaskDto: CreateGroupalTaskDto
   ) {
     return this.groupalTasksService.createGroupalTask(globalTaskId, createGroupalTaskDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/preview')
+  async getGroupalTaskPreview(@Param('id') id: string) {
+    const groupalTask = await this.groupalTasksService.getGroupalTaskPreview(id);
+    if (!groupalTask) {
+      throw new NotFoundException(`Groupal Task with ID "${id}" not found`);
+    }
+    return groupalTask;
   }
 }

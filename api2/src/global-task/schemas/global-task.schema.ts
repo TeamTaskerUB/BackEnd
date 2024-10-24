@@ -26,7 +26,7 @@ export class GlobalTask extends Document {
   comments: { id: Types.ObjectId; text: string }[];
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'GroupalTask' }], default: [] })
-  grupalTasks: Types.ObjectId[];
+  groupalTasks: Types.ObjectId[];
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   admin: Types.ObjectId;

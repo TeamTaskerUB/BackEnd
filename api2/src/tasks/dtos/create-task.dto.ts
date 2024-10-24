@@ -23,11 +23,11 @@ export class CreateTaskDto {
   @IsNotEmpty()
   priority: string;
 
-  @IsArray()
-  @IsOptional()
-  comments?: Array<{ id: string; text: string }>;  // IDs y texto de los comentarios
+  @IsString()
+  @IsNotEmpty()
+  groupalTaskId: string;
 
-  @IsArray()
-  @IsOptional()
-  assignees?: string[];  // IDs de los usuarios asignados
+  @IsString()
+  @IsNotEmpty()
+  globalTaskId: string;
 }
