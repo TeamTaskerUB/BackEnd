@@ -53,6 +53,7 @@ class MySQLConnector:
 
     def execute_query(self, query, params=None):
         # Ejecuta una consulta en la base de datos
+        print("Ejecutando consulta: ", query)
         cursor = None
         try:
             cursor = self.connection.cursor()
@@ -60,8 +61,10 @@ class MySQLConnector:
                 cursor.execute(query, params)
             else:
                 cursor.execute(query)
+            result = cursor.fetchall()
             self.connection.commit()
             print("Consulta ejecutada correctamente")
+            return result
         except Error as e:
             print(f"Error al ejecutar la consulta: {e}")
         finally:

@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+from flask_login import LoginManager, login_required, logout_user, login_user, current_user
 from Models.MySQLConnector import MySQLConnector
 from Models.Usuarios import Usuario
 
@@ -12,19 +12,19 @@ def load_user(email):
     # Intentamos iniciar sesión en la base de datos buscando al usuario
     return Usuario.get_by_email(email)
 
-@app.route('/register', methods=['POST'])
+@app.route('/auth/register', methods=['POST'])
 def register():
-    datos = request.get_json()
-    username = datos.get('mail')
-    password = datos.get('password')
-    name = datos.get ('nombre')
-    apellido = datos.get('apellido')
-    perfil = datos.get('perfil')
+    user_data = request.get_json()
+
+    username = user_data.get('mail')
+    password = user_data.get('password')
+    name = user_data.get ('nombre')
+    apellido = user_data.get('apellido')
 
     response = Usuario.register(username, password, name, apellido)
     return response
 
-@app.route('/register', methods=['GET'])
+@app.route('/auth/login', methods=['GET'])
 def login():
     datos = request.get_json()
     username = datos.get('mail')
@@ -53,6 +53,32 @@ def hello_world():  # put application's code here
     return 'Hello World!'
 
 if __name__ == '__main__':
-    #app.run()
+    app.run(debug=True)
     db = MySQLConnector("config.json")
     db.connect()
+
+    # db.execute_query("INSERT INTO persona (name) VALUES (%s)", ("Lucio Aymonino",))
+    # data = db.fetch_data("SELECT * FROM persona")
+    # print(data)
+    # Cierra la conexión
+
+    # Prueba de Registro
+    nuevo_usuario = Usuario.register(
+        mail="usuario@example.com",
+        nombre_completo="Nombre Completo",
+        contraseña="password123",
+        perfil="usuario"
+    )
+    if nuevo_usuario:
+        print(f"Usuario registrado: {nuevo_usuario.nombre_completo}")
+    #
+    # # Prueba de Login
+    # usuario_iniciado = Usuario.login(
+    #     email="usuario@example.com",
+    #     contraseña="password123"
+    # )
+    # if usuario_iniciado:
+    #     print(f"Inicio de sesión exitoso para: {usuario_iniciado.nombre_completo}")
+    # else:
+    #     print("Error en el inicio de sesión.")
+
