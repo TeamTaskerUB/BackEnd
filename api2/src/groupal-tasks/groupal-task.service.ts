@@ -33,7 +33,6 @@ export class GroupalTasksService {
     return createdGroupalTask;
   }
 
-
   async getGroupalTaskPreview(groupalTaskId: string) {
     // Buscar la tarea grupal por su ID
     const groupalTask = await this.groupalTaskModel.findById(groupalTaskId);
@@ -48,5 +47,22 @@ export class GroupalTasksService {
       groupalTask: groupalTask.toObject(),
       tasksPreview: tasks,  // Devolvemos solo la vista previa de las tareas
     };
+  }
+
+  // Método para asignar un admin a una tarea grupal
+  async assignAdmin(groupalTaskId: string, newAdminId: string): Promise<GroupalTask> {
+    const groupalTask = await this.groupalTaskModel.findById(groupalTaskId);
+    
+    // Verificar si la tarea grupal existe
+    if (!groupalTask) {
+      throw new NotFoundException(`Groupal Task with ID "${groupalTaskId}" not found`);
+    }
+
+    // Asignar el nuevo admin a la tarea grupal
+    groupalTask.admin = new Types.ObjectId(newAdminId);
+
+
+    // Guardar la tarea grupal con el nuevo admin
+    return groupalTask.save();
   }
 }

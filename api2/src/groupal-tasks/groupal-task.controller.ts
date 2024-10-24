@@ -1,7 +1,8 @@
-import { Controller, Post, Body, Param, UseGuards, Get, NotFoundException } from '@nestjs/common';
+import { Controller, Post, Body, Param, UseGuards, Get, NotFoundException, Req, ForbiddenException } from '@nestjs/common';
 import { GroupalTasksService } from './groupal-task.service';
 import { CreateGroupalTaskDto } from './dtos/create-gruopal-task.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { Request } from 'express';
 
 @Controller('groupal-tasks')
 export class GroupalTasksController {
@@ -24,5 +25,24 @@ export class GroupalTasksController {
       throw new NotFoundException(`Groupal Task with ID "${id}" not found`);
     }
     return groupalTask;
+  }
+
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/assign-admin')
+  async assignAdminToGroupalTask(
+    @Param('id') groupalTaskId: string,
+    @Body('newAdminId') newAdminId: string,
+    @Req() req: Request
+  ) {
+    const user = req.user; // Extraemos el usuario del request (usando JwtStrategy)
+    
+    // Verificamos si el usuario tiene el rol de PManager
+    if (user.role !== 'PManager') {
+      throw new ForbiddenException('Only Project Managers can assign admins to group tasks.');
+    }
+
+    // Llamamos al servicio para asignar el nuevo admin
+    return this.groupalTasksService.assignAdmin(groupalTaskId, newAdminId);
   }
 }

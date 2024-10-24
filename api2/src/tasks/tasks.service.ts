@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Task } from './schemas/task.schema';
 import { GroupalTask } from '../groupal-tasks/schemas/groupal-task.schema';
 import { GlobalTask } from '../global-task/schemas/global-task.schema';
@@ -55,5 +55,24 @@ export class TasksService {
       throw new NotFoundException(`Task with ID "${taskId}" not found`);
     }
     return task;
+  }
+
+  async assignAssigneesToTask(taskId: string, assignees: string[], userRole: string): Promise<Task> {
+    // Verificar si el rol del usuario es 'PManager'
+    if (userRole !== 'PManager') {
+      throw new ForbiddenException('Only Project Managers can assign assignees to tasks.');
+    }
+
+    // Buscar la tarea por su ID
+    const task = await this.taskModel.findById(taskId);
+    if (!task) {
+      throw new NotFoundException(`Task with ID "${taskId}" not found`);
+    }
+
+    // Convertir cada ID en ObjectId y asignarlo al array de assignees
+    task.assignees.push(...assignees.map(assigneeId => new Types.ObjectId(assigneeId)));
+
+    // Guardar la tarea actualizada
+    return task.save();
   }
 }
