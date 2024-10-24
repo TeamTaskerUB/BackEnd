@@ -1,8 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose';
+
+export type GroupalTaskDocument = HydratedDocument<GroupalTask>;
 
 @Schema()
-export class GroupalTask extends Document {
+export class GroupalTask {
 
   @Prop({ required: true })
   name: string;
@@ -28,7 +30,7 @@ export class GroupalTask extends Document {
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Task' }], default: [] })
   tasks: Types.ObjectId[];
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  @Prop({ type: Types.ObjectId, ref: 'User', required: false})
   admin: Types.ObjectId;
 }
 

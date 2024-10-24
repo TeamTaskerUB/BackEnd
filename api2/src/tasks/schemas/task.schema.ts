@@ -1,8 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import {  HydratedDocument, Types } from 'mongoose';
+
+
+export type GroupalTaskDocument = HydratedDocument<Task>;
 
 @Schema()
-export class Task extends Document {
+export class Task  {
 
   @Prop({ required: true })
   name: string;
