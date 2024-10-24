@@ -7,6 +7,9 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TasksModule } from './tasks/tasks.module';
+import { GlobalTaskModule } from './global-task/global-task.module';
+import { GrupalTaskModule } from './grupal-task/grupal-task.module';
 
 
 @Module({
@@ -26,7 +29,13 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     
     UserModule,
     
-    AuthModule
+    AuthModule,
+    
+    TasksModule,
+    
+    GlobalTaskModule,
+    
+    GrupalTaskModule
   ],
   controllers: [AppController],
   providers: [AppService],
