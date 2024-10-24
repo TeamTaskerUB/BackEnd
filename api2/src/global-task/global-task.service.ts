@@ -1,16 +1,20 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { GlobalTask } from './schemas/global-task.schema';
 import { GroupalTask } from '../groupal-tasks/schemas/groupal-task.schema';
 import { Task } from '../tasks/schemas/task.schema';
+import { CreateGlobalTaskDto } from './dtos/create-global-task.dto';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class GlobalTasksService {
+  
   constructor(
     @InjectModel(GlobalTask.name) private readonly globalTaskModel: Model<GlobalTask>,
     @InjectModel(GroupalTask.name) private readonly groupalTaskModel: Model<GroupalTask>,
     @InjectModel(Task.name) private readonly taskModel: Model<Task>,
+    private readonly userService: UserService
   ) {}
 
   async getGlobalTaskPreview(id: string) {
@@ -37,5 +41,25 @@ export class GlobalTasksService {
       groupalTasks, // Resumen de tareas grupales
       tasks, // Resumen de tareas normales
     };
+  }
+
+  async createGlobalTask(createGlobalTaskDto: CreateGlobalTaskDto, userId: string): Promise<GlobalTask> {
+    // Verificar que el usuario tenga rol de PManager
+    const user = await this.userService.getUserById(userId);
+
+    if (user.role !== 'PManager') {
+      throw new ForbiddenException('No tienes permisos para crear una tarea global');
+    }
+
+    // Crear la tarea global con los arrays vacíos de tasks y grupalTasks
+    const globalTask = new this.globalTaskModel({
+      ...createGlobalTaskDto,
+      admin: userId, // Asignamos el userId como admin
+      grupalTasks: [], // Inicializamos arrays vacíos
+      tasks: [],
+    });
+
+    // Guardar en la base de datos
+    return globalTask.save();
   }
 }
