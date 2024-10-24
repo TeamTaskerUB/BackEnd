@@ -49,7 +49,7 @@ def protected():
     return jsonify({"mensaje": "Acceso permitido para el usuario {}".format(current_user.email)}), 200
 
 @app.route('/')
-def hello_world():  # put application's code here
+def hello_world():
     return 'Hello World!'
 
 if __name__ == '__main__':

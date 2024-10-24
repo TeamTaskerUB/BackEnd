@@ -141,3 +141,6 @@ fabric.properties
 api-ttv1/
 **/__pycache__/
 /APIRestV1-TeamTasker/Models/__pycache__
+
+APIRestV1-TeamTasker/config.json
+
