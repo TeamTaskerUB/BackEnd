@@ -8,17 +8,22 @@ from Models.Tareas import *
 app = Flask(__name__)
 
 #Endpoint para que el Administrador de Proyecto cree una tarea grupal, usando el id del proyecto en la ruta
-@app.route('/<int:idTareaGlobal>/crear_tarea_grupal', methods=['POST'])
-def crearTareaGrupal(idTareaGlobal):
+@app.route('/grouptask/create', methods=['POST'])
+def crearTareaGrupal():
     #Primero chequear que la solicitud sea un post
     if request.method == 'POST':
+        
+        # Conseguir todos los datos necesarios.
         data = request.json
+        idTareaGlobal = data['idTareaGlobal']
         idUsuario = data['idUsuario']
         idAdminGrupo = data['idAdminGrupo']
         fechaInicio = data['fechaInicio']
         fechaFin = data['fechaFin']
         nombre = data['nombre']
         descripcion = data['descripcion']
+        integrantes = data['integrantes']
+
         # Verificacion general con los datos mas importantes no esten vacios.
         if not idUsuario or not idAdminGrupo or not (fechaFin and fechaInicio) or not nombre:
             return jsonify({'message': 'Faltan campos obligatorios'}), 400
@@ -30,41 +35,43 @@ def crearTareaGrupal(idTareaGlobal):
         if not check == "OK":
             return check, 401
         
-        #Verificar que no exista una tareaGrupal con el mismo nombre en el mismo proyecto.
-        check = existeTareaGrupal(db, idTareaGlobal, nombre)
-        if not check == "OK":
-            return check, 401
-        
         #Tambien se realizaran verificaciones de que los integrantes y el admin del nuevo grupo pertenezcan al proyecto.
-        integrantes = data['integrantes']
         if not integrantes:
             integrantes = []
         
-        check = verificarIntegrantes(db, integrantes, idTareaGlobal, idAdminGrupo, idUsuario)    
-        if not check == "OK":
-            return check, 401
-        
         # Instanciar la tarea grupal y pasarle los parametros que se enviaron y comprobaron.
         tareaGrupal = TareaGrupal()
+        
         #Verificar formato de que el formato de las fechas sea valido. Y pasar el string a un int
         check = tareaGrupal.verificarFechas(fechaInicio, fechaFin)
         if not check == "OK":
             return check
         
+        #Verificar que no exista una tareaGrupal con el mismo nombre en el mismo proyecto.
+        check = tareaGrupal.existeTareaGrupal(idTareaGlobal, nombre, db)
+        if not check == "OK":
+            return check, 401
+        
+        check = tareaGrupal.verificarIntegrantes(integrantes, idTareaGlobal, idAdminGrupo, idUsuario, db)    
+        if not check == "OK":
+            return check, 401
+        
         result = tareaGrupal.crearTareaGrupal(nombre, descripcion, idTareaGlobal, idAdminGrupo, integrantes, db) 
         if (result == "OK"):
-            return jsonify({'message': "OK"}), 200
+            tareaGrupal.asignarTareaGrupal(db)
+            return jsonify({'message': "Created", "tareagrupal" : tuple(tareaGrupal)}), 201
         else:
-            return jsonify({"message": "Error al crear tarea grupal"}), 500
+            return jsonify({"message": "Not created"}), 500
         
     return jsonify({'message': 'Metodo no valido'}), 405
 
 #Endpoint para que el Administrador de Proyecto elimine una tarea grupal
-@app.route('/<int:idTareaGrupal>/eliminar_tarea_grupal', methods=['DELETE'])
-def eliminarTareaGrupal(idTareaGrupal):
+@app.route('/grouptask/delete', methods=['DELETE'])
+def eliminarTareaGrupal():
     if request.method == 'DELETE':
         data = request.json
         idUsuario = data['idUsuario']
+        idTareaGrupal = data['idTareaGrupal']
         accion = data.get('accion', 'continuar')  # Opción seleccionada por el usuario ('continuar' o 'asignar')
 
         # Obtener el idTareaGlobal asociado a la tarea grupal
@@ -90,7 +97,7 @@ def eliminarTareaGrupal(idTareaGrupal):
             # Verificar si hay tareas unitarias asociadas a la tarea grupal
             if tareasUnitarias:
                 # Verificar si las tareas unitarias han comenzado (esto se sabra por la etiqueta)
-                tareasEmpezadas = [tarea for tarea in tareasUnitarias if not tarea[9] == "Inactiva"]
+                tareasEmpezadas = [tarea for tarea in tareasUnitarias if not tarea[9] == "inactiva"]
 
                 if tareasEmpezadas:
                     if accion == 'asignar':
@@ -123,8 +130,9 @@ def eliminarTareaGrupal(idTareaGrupal):
                 else:
                     query = "DELETE FROM tareaunitaria WHERE grupo = %s"
                     db.execute_query(query, (idTareaGrupal,))
-        except:
-            pass
+        except Exception as e:
+            print(f"Error al analizar las tareas unitarias de la tarea: {idTareaGrupal}")
+            return jsonify({"message" : f"{e}"}), 500
 
         # Proceder con la eliminación de la tarea grupal
         query = """DELETE FROM tareagrupal WHERE idGrupo = %s"""
@@ -132,13 +140,13 @@ def eliminarTareaGrupal(idTareaGrupal):
         query = """SELECT idGrupo FROM tareagrupal WHERE idGrupo = %s"""
         result = db.fetch_data(query, (idTareaGrupal,))
         if not result:
-            return jsonify({"message" : "Tarea Grupal eliminada satisfactoriamente"})
+            return jsonify({"message" : "Tarea Grupal eliminada satisfactoriamente"}), 200
         return jsonify({'message': 'Error al eliminar la tarea grupal'}), 500
 
     return jsonify({'message': 'Método no válido'}), 405
 
 #Endpoint que le dara toda la informacion de las tareas unitarias asociadas
-@app.route('/<int:idTareaGrupal>/get_tareas_unitarias', methods=['GET'])
+@app.route('/grouptask/get_tareas_unitarias', methods=['GET'])
 def getTareasUnitarias(idTareaGrupal):
     if request.method == 'GET':
         tareaGrupal = TareaGrupal()
@@ -171,28 +179,6 @@ def verificarAdminProyecto(id: int, idTareaGlobal: int):
             return "OK"
     except:
         return jsonify({'message': "No es el admin del proyecto"})
-
-#Funcion para verificar que todos los integrantes pertenezcan al proyecto.
-def verificarIntegrantes(integrantes, idTareaGlobal: int, idAdminGrupo, idAdminProyecto):
-    result = db.execute_stored_procedure("get_usuarios_proyecto", (idTareaGlobal,))
-    if not result == None:
-        for usuario in result:
-            if len(usuario) >= 1 and len(usuario[0]) >= 1:
-                if not (usuario[0][0] in integrantes or usuario[0][0] == idAdminGrupo or usuario[0][0] == idAdminProyecto):
-                    return jsonify({'message': f"El integrante {usuario[0]} no pertenece al proyecto"})
-    return "OK"
-
-#Verificar que exista una tarea grupal con el mismo nombre
-def existeTareaGrupal(idTareaGlobal: int, nombre):
-    query = """SELECT nombre FROM tareagrupal WHERE idProyecto = %s"""
-    result = db.fetch_data(query, (idTareaGlobal,))
-    try:
-        for resultado in result:
-            if resultado[0] == nombre:
-                return jsonify({"message" : "Error: Ya existe una tarea grupal con ese nombre."})
-    except:
-        return "OK"
-    return "OK"
 
 db = MySQLConnector('APIRestV1-TeamTasker/config.json')
 db.connect()

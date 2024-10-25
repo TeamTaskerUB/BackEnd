@@ -1,6 +1,6 @@
 from datetime import datetime
 from flask import jsonify
-from Models.MySQLConnector import MySQLConnector
+from .MySQLConnector import MySQLConnector
 
 # Clase Tarea (Clase base)
 class Tarea:
@@ -113,34 +113,34 @@ class TareaGrupal(Tarea):
             return jsonify({'message': 'No hay tareas unitarias asociadas a esta tarea grupal'}), 404
         try:
             #Calcular el promedio del progreso de las tareas unitarias
-            progreso_total = sum([tarea[6] for tarea in tareasUnitarias])
-            total_tareas = len(tareasUnitarias)
-            self.progreso = progreso_total / total_tareas if total_tareas > 0 else 0
+            total = sum([tarea[6] for tarea in tareasUnitarias])
+            totalTareas = len(tareasUnitarias)
+            self.progreso = total / totalTareas if totalTareas > 0 else 0
             
             # Calcular los días de duración de la tarea grupal
-            duracion_total_dias = (self.fecha_fin - self.fecha_inicio).days
-            if duracion_total_dias <= 0:
+            duracion = (self.fecha_fin - self.fecha_inicio).days
+            if duracion <= 0:
                 return jsonify({'message': 'Duración inválida para la tarea grupal'}), 400
 
             # Si la fecha actual supera la fecha de finalización, se espera un progreso del 100%
             if datetime.now() > self.fecha_fin:
-                progreso_esperado = 100
+                esperado = 100
             else:
                 # Calcular los días transcurridos desde la fecha de inicio hasta hoy
-                dias_transcurridos = (datetime.now() - self.fecha_inicio).days
+                dias = (datetime.now() - self.fecha_inicio).days
                 
                 # Calcular el progreso esperado en función de los días transcurridos
-                dias_transcurridos = min(dias_transcurridos, duracion_total_dias)
-                progreso_diario_esperado = 100 / duracion_total_dias
-                progreso_esperado = progreso_diario_esperado * dias_transcurridos
+                dias = min(dias, duracion)
+                progresoDiario = 100 / duracion
+                esperado = progresoDiario * dias
             
             #Comparar el progreso actual con el esperado
-            if self.progreso >= progreso_esperado:
-                self.estado = "Verde"
-            elif self.progreso >= (progreso_esperado * 0.75):
-                self.estado = "Amarillo"
+            if self.progreso >= esperado:
+                self.estado = "verde"
+            elif self.progreso >= (esperado * 0.75):
+                self.estado = "amarillo"
             else:
-                self.estado = "Rojo"
+                self.estado = "rojo"
         except:
             return jsonify({"message" : "Error al calcular el progreso."})
         
@@ -149,3 +149,25 @@ class TareaGrupal(Tarea):
             'progreso': self.progreso,
             'estado': self.estado
         }), 200
+    
+    #Funcion para verificar que todos los integrantes pertenezcan al proyecto.
+    def verificarIntegrantes(integrantes, idTareaGlobal: int, idAdminGrupo: int, idAdminProyecto: int, db: MySQLConnector):
+        result = db.execute_stored_procedure("get_usuarios_proyecto", (idTareaGlobal,))
+        if not result == None:
+            for usuario in result:
+                if len(usuario) >= 1 and len(usuario[0]) >= 1:
+                    if not (usuario[0][0] in integrantes or usuario[0][0] == idAdminGrupo or usuario[0][0] == idAdminProyecto):
+                        return jsonify({'message': f"El integrante {usuario[0]} no pertenece al proyecto"})
+        return "OK"
+    
+    #Verificar que exista una tarea grupal con el mismo nombre
+    def existeTareaGrupal(idTareaGlobal: int, nombre, db: MySQLConnector):
+        query = """SELECT nombre FROM tareagrupal WHERE idProyecto = %s"""
+        result = db.fetch_data(query, (idTareaGlobal,))
+        try:
+            for resultado in result:
+                if resultado[0] == nombre:
+                    return jsonify({"message" : "Error: Ya existe una tarea grupal con ese nombre."})
+        except:
+            return "OK"
+        return "OK"
