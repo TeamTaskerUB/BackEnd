@@ -74,8 +74,17 @@ export class GroupalTasksService {
       throw new NotFoundException(`Groupal Task with ID "${groupalTaskId}" not found`);
     }
   
-    // Eliminar todas las tareas individuales asociadas
-    await this.taskModel.deleteMany({ _id: { $in: groupalTask.tasks } });
+    // Eliminar todas las tareas individuales asociadas a la tarea grupal
+    for (const taskId of groupalTask.tasks) {
+      // Eliminar la tarea individual
+      await this.taskModel.deleteOne({ _id: taskId });
+  
+      // Eliminar la referencia de la tarea en la tarea global
+      await this.globalTaskModel.updateOne(
+        { tasks: taskId },
+        { $pull: { tasks: taskId } }
+      );
+    }
   
     // Eliminar la tarea grupal
     await this.groupalTaskModel.deleteOne({ _id: groupalTaskId });
@@ -86,6 +95,6 @@ export class GroupalTasksService {
       { $pull: { groupalTasks: groupalTaskId } }
     );
   }
-
+  
   
 }

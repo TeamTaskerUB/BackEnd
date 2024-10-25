@@ -77,11 +77,25 @@ export class TasksService {
   }
 
   async deleteTask(taskId: string): Promise<void> {
+    // Buscar la tarea individual
     const task = await this.taskModel.findById(taskId);
     if (!task) {
       throw new NotFoundException(`Task with ID "${taskId}" not found`);
     }
-
+  
+    // Eliminar la tarea de la colección de tareas individuales
     await this.taskModel.deleteOne({ _id: taskId });
+  
+    // Eliminar la referencia de la tarea en la tarea grupal
+    await this.groupalTaskModel.updateOne(
+      { tasks: taskId },
+      { $pull: { tasks: taskId } }
+    );
+  
+    // Eliminar la referencia de la tarea en la tarea global
+    await this.globalTaskModel.updateOne(
+      { tasks: taskId },
+      { $pull: { tasks: taskId } }
+    );
   }
 }
