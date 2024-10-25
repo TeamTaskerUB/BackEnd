@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Param, UseGuards, Get, NotFoundException, Req, ForbiddenException } from '@nestjs/common';
+import { Controller, Post, Body, Param, UseGuards, Get, NotFoundException, Req, ForbiddenException, Delete } from '@nestjs/common';
 import { GroupalTasksService } from './groupal-task.service';
 import { CreateGroupalTaskDto } from './dtos/create-gruopal-task.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -45,4 +45,20 @@ export class GroupalTasksController {
     // Llamamos al servicio para asignar el nuevo admin
     return this.groupalTasksService.assignAdmin(groupalTaskId, newAdminId);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  async deleteGroupalTask(@Param('id') groupalTaskId: string, @Req() req: Request) {
+    const user = req.user;
+
+    // Verificar si el usuario tiene permisos (debe ser Project Manager)
+    if (user.role !== 'PManager') {
+      throw new ForbiddenException('Only Project Managers can delete group tasks.');
+    }
+
+    // Llamamos al servicio para eliminar la tarea grupal y sus tareas asociadas
+    return this.groupalTasksService.deleteGroupalTask(groupalTaskId);
+  }
+
+  
 }

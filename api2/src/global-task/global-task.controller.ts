@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { GlobalTasksService } from './global-task.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CreateGlobalTaskDto } from './dtos/create-global-task.dto';
@@ -24,5 +24,19 @@ export class GlobalTasksController {
 
     // Llamamos al servicio para crear la tarea global
     return this.globalTasksService.createGlobalTask(createGlobalTaskDto, user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  async deleteGlobalTask(@Param('id') globalTaskId: string, @Req() req: Request) {
+    const user = req.user;
+
+    // Verificar si el usuario tiene permisos (debe ser Project Manager)
+    if (user.role !== 'PManager') {
+      throw new ForbiddenException('Only Project Managers can delete global tasks.');
+    }
+
+    // Llamamos al servicio para eliminar la tarea global y sus tareas grupales e individuales asociadas
+    return this.globalTasksService.deleteGlobalTask(globalTaskId);
   }
 }

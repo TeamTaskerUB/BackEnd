@@ -65,4 +65,27 @@ export class GroupalTasksService {
     // Guardar la tarea grupal con el nuevo admin
     return groupalTask.save();
   }
+
+
+  async deleteGroupalTask(groupalTaskId: string): Promise<void> {
+    // Buscar la tarea grupal
+    const groupalTask = await this.groupalTaskModel.findById(groupalTaskId);
+    if (!groupalTask) {
+      throw new NotFoundException(`Groupal Task with ID "${groupalTaskId}" not found`);
+    }
+  
+    // Eliminar todas las tareas individuales asociadas
+    await this.taskModel.deleteMany({ _id: { $in: groupalTask.tasks } });
+  
+    // Eliminar la tarea grupal
+    await this.groupalTaskModel.deleteOne({ _id: groupalTaskId });
+  
+    // Actualizar la tarea global para remover la referencia a la tarea grupal eliminada
+    await this.globalTaskModel.updateOne(
+      { groupalTasks: groupalTaskId },
+      { $pull: { groupalTasks: groupalTaskId } }
+    );
+  }
+
+  
 }

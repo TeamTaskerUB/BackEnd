@@ -62,4 +62,29 @@ export class GlobalTasksService {
     // Guardar en la base de datos
     return globalTask.save();
   }
+
+  async deleteGlobalTask(globalTaskId: string): Promise<void> {
+    // Buscar la tarea global
+    const globalTask = await this.globalTaskModel.findById(globalTaskId);
+    if (!globalTask) {
+      throw new NotFoundException(`Global Task with ID "${globalTaskId}" not found`);
+    }
+  
+    // Eliminar todas las tareas individuales asociadas a cada tarea grupal
+    for (const groupalTaskId of globalTask.groupalTasks) {
+      const groupalTask = await this.groupalTaskModel.findById(groupalTaskId);
+  
+      if (groupalTask) {
+        // Eliminar todas las tareas individuales asociadas a la tarea grupal
+        await this.taskModel.deleteMany({ _id: { $in: groupalTask.tasks } });
+  
+        // Eliminar la tarea grupal
+        await this.groupalTaskModel.deleteOne({ _id: groupalTaskId });
+      }
+    }
+  
+    // Eliminar la tarea global
+    await this.globalTaskModel.deleteOne({ _id: globalTaskId });
+  }
+  
 }
