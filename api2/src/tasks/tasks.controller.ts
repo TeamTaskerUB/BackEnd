@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Param, UseGuards, NotFoundException, Get, Req, ForbiddenException } from '@nestjs/common';
+import { Controller, Post, Body, Param, UseGuards, NotFoundException, Get, Req, ForbiddenException, Delete } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dtos/create-task.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -40,5 +40,19 @@ export class TasksController {
 
     // Llamamos al servicio para asignar los assignees
     return this.tasksService.assignAssigneesToTask(taskId, assignees, user.role);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  async deleteTask(@Param('id') taskId: string, @Req() req: Request) {
+    const user = req.user;
+
+    // Verificar si el usuario tiene permisos (por ejemplo, si es un Project Manager)
+    if (user.role !== 'PManager') {
+      throw new ForbiddenException('Only Project Managers can delete tasks.');
+    }
+
+    // Llamamos al servicio para eliminar la tarea
+    return this.tasksService.deleteTask(taskId);
   }
 }

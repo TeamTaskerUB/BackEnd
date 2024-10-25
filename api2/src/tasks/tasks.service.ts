@@ -75,4 +75,13 @@ export class TasksService {
     // Guardar la tarea actualizada
     return task.save();
   }
+
+  async deleteTask(taskId: string): Promise<void> {
+    const task = await this.taskModel.findById(taskId);
+    if (!task) {
+      throw new NotFoundException(`Task with ID "${taskId}" not found`);
+    }
+
+    await this.taskModel.deleteOne({ _id: taskId });
+  }
 }
