@@ -25,8 +25,12 @@ A continuación se describen los endpoints disponibles en la API (por ahora):
 
 ### Gestión de Usuarios
 ### Gestión de Grupos
-- **POST /<int:idProyecto>/crear_tarea_grupal**:
+- **POST /grouptask/create**:
     - **Descripción**: Crea una tarea grupal.
-    - **Parámetros**: `idProyecto`, `idAdminGrupo`, `integrantes`, `fechaInicio`, `fechaFin`, `titulo`, `descripcion`
-    - **Respuesta**: `200 OK` y redirige a menu de proyecto.
+    - **Parámetros**: `idTareaGlobal`, `idUsuario`, `idAdminGrupo`, `fechaInicio`, `fechaFin`, `titulo`, `descripcion`, `integrantes`
+    - **Respuesta**: `200 Created` con los detalles del nuevo grupo.
+- **DELETE /grouptask/delete**:
+      - **Descripción**: Elimina una tarea grupal.
+      - **Parámetros**: `idUsuario`, `idTareaGrupal`, `accion`
+      - **Respuesta**: `200 OK`.
 ### Gestión de tareas
