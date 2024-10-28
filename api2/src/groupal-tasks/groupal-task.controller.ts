@@ -36,6 +36,8 @@ export class GroupalTasksController {
     @Req() req: Request
   ) {
     const user = req.user; // Extraemos el usuario del request (usando JwtStrategy)
+
+    console.log(user)
     
     // Verificamos si el usuario tiene el rol de PManager
     if (user.role !== 'PManager') {
@@ -50,6 +52,7 @@ export class GroupalTasksController {
   @Delete(':id')
   async deleteGroupalTask(@Param('id') groupalTaskId: string, @Req() req: Request) {
     const user = req.user;
+    console.log(user.role)
 
     // Verificar si el usuario tiene permisos (debe ser Project Manager)
     if (user.role !== 'PManager') {
