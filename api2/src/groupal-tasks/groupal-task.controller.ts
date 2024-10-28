@@ -29,7 +29,7 @@ export class GroupalTasksController {
 
 
   @UseGuards(JwtAuthGuard)
-  @Post(':id/assign-admin')
+  @Post('assign-admin/:id')
   async assignAdminToGroupalTask(
     @Param('id') groupalTaskId: string,
     @Body('newAdminId') newAdminId: string,
