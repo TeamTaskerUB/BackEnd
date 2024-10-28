@@ -71,15 +71,19 @@ export class GlobalTasksService {
       throw new NotFoundException(`Global Task with ID "${globalTaskId}" not found`);
     }
   
-    // Eliminar todas las tareas grupales e individuales asociadas a la tarea global
-    for (const groupalTaskId of globalTask.groupalTasks) {
 
-      const user = await this.userService.getUserById(userId);
+    const user = await this.userService.getUserById(userId);
     
 
     if (user.role !== 'PManager') {
       throw new ForbiddenException('No tienes permisos para eliminar una tarea global');
     }
+
+    
+    // Eliminar todas las tareas grupales e individuales asociadas a la tarea global
+    for (const groupalTaskId of globalTask.groupalTasks) {
+
+      
 
       const groupalTask = await this.groupalTaskModel.findById(groupalTaskId);
   
