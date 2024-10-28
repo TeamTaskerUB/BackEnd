@@ -9,7 +9,7 @@ export class GlobalTasksController {
   constructor(private readonly globalTasksService: GlobalTasksService) {}
 
   @UseGuards(JwtAuthGuard) // Protección de ruta con JWT
-  @Get(':id/preview')
+  @Get(':id')
   async getGlobalTaskPreview(@Param('id') id: string) {
     return this.globalTasksService.getGlobalTaskPreview(id);
   }
@@ -21,7 +21,6 @@ export class GlobalTasksController {
     @Body() createGlobalTaskDto: CreateGlobalTaskDto
   ) {
     const user = req.user;
-
     // Llamamos al servicio para crear la tarea global
     return this.globalTasksService.createGlobalTask(createGlobalTaskDto, user.userId);
   }
@@ -30,13 +29,7 @@ export class GlobalTasksController {
   @Delete(':id')
   async deleteGlobalTask(@Param('id') globalTaskId: string, @Req() req: Request) {
     const user = req.user;
-
-    // Verificar si el usuario tiene permisos (debe ser Project Manager)
-    if (user.role !== 'PManager') {
-      throw new ForbiddenException('Only Project Managers can delete global tasks.');
-    }
-
     // Llamamos al servicio para eliminar la tarea global y sus tareas grupales e individuales asociadas
-    return this.globalTasksService.deleteGlobalTask(globalTaskId);
+    return this.globalTasksService.deleteGlobalTask(globalTaskId, user.userId);
   }
 }

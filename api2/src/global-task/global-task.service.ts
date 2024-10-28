@@ -46,6 +46,7 @@ export class GlobalTasksService {
   async createGlobalTask(createGlobalTaskDto: CreateGlobalTaskDto, userId: string): Promise<GlobalTask> {
     // Verificar que el usuario tenga rol de PManager
     const user = await this.userService.getUserById(userId);
+    
 
     if (user.role !== 'PManager') {
       throw new ForbiddenException('No tienes permisos para crear una tarea global');
@@ -63,7 +64,7 @@ export class GlobalTasksService {
     return globalTask.save();
   }
 
-  async deleteGlobalTask(globalTaskId: string): Promise<void> {
+  async deleteGlobalTask(globalTaskId: string, userId): Promise<void> {
     // Buscar la tarea global
     const globalTask = await this.globalTaskModel.findById(globalTaskId);
     if (!globalTask) {
@@ -72,6 +73,14 @@ export class GlobalTasksService {
   
     // Eliminar todas las tareas grupales e individuales asociadas a la tarea global
     for (const groupalTaskId of globalTask.groupalTasks) {
+
+      const user = await this.userService.getUserById(userId);
+    
+
+    if (user.role !== 'PManager') {
+      throw new ForbiddenException('No tienes permisos para eliminar una tarea global');
+    }
+
       const groupalTask = await this.groupalTaskModel.findById(groupalTaskId);
   
       if (groupalTask) {
