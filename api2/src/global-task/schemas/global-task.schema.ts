@@ -28,11 +28,13 @@ export class GlobalTask extends Document {
   @Prop({ type: [{ type: Types.ObjectId, ref: 'GroupalTask' }], default: [] })
   groupalTasks: Types.ObjectId[];
 
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Task' }], default: [] })
+  tasks: Types.ObjectId[];
+
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   admin: Types.ObjectId;
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'Task' }], default: [] })
-  tasks: Types.ObjectId[];
+  
 }
 
 export const GlobalTaskSchema = SchemaFactory.createForClass(GlobalTask);

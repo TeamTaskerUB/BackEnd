@@ -30,11 +30,13 @@ export class CreateGlobalTaskDto {
   @IsArray()
   @IsOptional()
   grupalTasks?: string[];  // IDs de tareas grupales asociadas
-  
-  @IsOptional()
-  admin: string;  // ID del admin
 
   @IsArray()
   @IsOptional()
   tasks?: string[];  // IDs de tareas asociadas
+  
+  @IsOptional()
+  admin: string;  // ID del admin
+
+  
 }
