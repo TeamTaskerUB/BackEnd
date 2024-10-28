@@ -18,7 +18,7 @@ export class GroupalTasksController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get(':id/preview')
+  @Get(':id/')
   async getGroupalTaskPreview(@Param('id') id: string) {
     const groupalTask = await this.groupalTasksService.getGroupalTaskPreview(id);
     if (!groupalTask) {
