@@ -17,31 +17,39 @@ export class GlobalTasksService {
     private readonly userService: UserService
   ) {}
 
-  async getGlobalTaskPreview(id: string) {
-    // Busca la tarea global por su ID
-    const globalTask = await this.globalTaskModel.findById(id).exec();
+  async getGlobalTaskPreview(globalTaskId: string) {
+    // Buscar la tarea global
+    const globalTask = await this.globalTaskModel.findById(globalTaskId).lean();
     if (!globalTask) {
-      throw new NotFoundException(`Global Task with ID "${id}" not found`);
+      throw new NotFoundException(`Global Task with ID "${globalTaskId}" not found`);
     }
-
-    // Obtén las tareas grupales asociadas a la tarea global
-    const groupalTasks = await this.groupalTaskModel
-      .find({ _id: { $in: globalTask.groupalTasks } })
-      .select('name startDate endDate description') // Solo devuelve los campos necesarios
-      .exec();
-
-    // Obtén las tareas normales asociadas a la tarea global
-    const tasks = await this.taskModel
-      .find({ _id: { $in: globalTask.tasks } })
-      .select('name startDate endDate description') // Solo devuelve los campos necesarios
-      .exec();
-
+  
+    // Obtener las grupal tasks asociadas y sus tasks
+    const groupalTasksWithTasks = await Promise.all(
+      globalTask.groupalTasks.map(async (groupalTaskId) => {
+        const groupalTask = await this.groupalTaskModel.findById(groupalTaskId).lean();
+        if (!groupalTask) {
+          throw new NotFoundException(`Groupal Task with ID "${groupalTaskId}" not found`);
+        }
+  
+        // Obtener las tareas asociadas a cada tarea grupal
+        const tasks = await this.taskModel.find({ _id: { $in: groupalTask.tasks } }).lean();
+  
+        // Devolver la tarea grupal junto con sus tareas
+        return {
+          ...groupalTask,
+          tasks,
+        };
+      })
+    );
+  
+    // Devolver el objeto con el árbol completo de groupal tasks y sus tasks
     return {
-      ...globalTask.toObject(), // Devuelve toda la info de la tarea global
-      groupalTasks, // Resumen de tareas grupales
-      tasks, // Resumen de tareas normales
+      ...globalTask,
+      groupalTasks: groupalTasksWithTasks, // Solo incluimos las groupal tasks con sus tasks
     };
   }
+  
 
   async createGlobalTask(createGlobalTaskDto: CreateGlobalTaskDto, userId: string): Promise<GlobalTask> {
     // Verificar que el usuario tenga rol de PManager

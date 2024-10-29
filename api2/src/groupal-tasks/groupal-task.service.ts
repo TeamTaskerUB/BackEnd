@@ -36,20 +36,22 @@ export class GroupalTasksService {
   }
 
   async getGroupalTaskPreview(groupalTaskId: string) {
-    // Buscar la tarea grupal por su ID
-    const groupalTask = await this.groupalTaskModel.findById(groupalTaskId);
+    // Buscar la tarea grupal
+    const groupalTask = await this.groupalTaskModel.findById(groupalTaskId).lean();
     if (!groupalTask) {
       throw new NotFoundException(`Groupal Task with ID "${groupalTaskId}" not found`);
     }
-
-    // Buscar las tareas normales asociadas
-    const tasks = await this.taskModel.find({ _id: { $in: groupalTask.tasks } }).select('name startDate endDate description').exec();
-
+  
+    // Obtener las tareas asociadas a la tarea grupal
+    const tasks = await this.taskModel.find({ _id: { $in: groupalTask.tasks } }).lean();
+  
+    // Devolver la tarea grupal con sus tareas asociadas
     return {
-      groupalTask: groupalTask.toObject(),
-      tasksPreview: tasks,  // Devolvemos solo la vista previa de las tareas
+      ...groupalTask,
+      tasks, // Incluimos las tareas de la tarea grupal
     };
   }
+  
 
   // Método para asignar un admin a una tarea grupal
   async assignAdmin(groupalTaskId: string, newAdminId: string): Promise<GroupalTask> {
