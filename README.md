@@ -33,7 +33,7 @@ This API provides endpoints for managing users, tasks, group tasks, and global t
   "createdAt": "2024-10-24T12:00:00Z",
   "isVerified": true
 }
-
+```
 
 ## Authentication
 
