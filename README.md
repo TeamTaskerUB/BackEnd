@@ -6,6 +6,35 @@
 
 This API provides endpoints for managing users, tasks, group tasks, and global tasks within a project management system. The API also includes authentication mechanisms for login and registration using JWT tokens.
 
+## Users
+
+### Get User by ID
+**Endpoint**: `GET /user/:id`
+
+**Description**: Retrieve all details of a specific user by their ID. This route is protected and requires authentication via JWT.
+
+**Headers**: 
+- `Authorization: Bearer {jwt_token}`
+
+**Response**:
+- Status: `200 OK`
+- Body: 
+```json
+{
+  "_id": "user_id",
+  "username": "john_doe",
+  "email": "john@example.com",
+  "role": "PManager",
+  "bio": "Software engineer",
+  "profilePhoto": "https://example.com/photo.jpg",
+  "followers": [],
+  "following": [],
+  "posts": [],
+  "createdAt": "2024-10-24T12:00:00Z",
+  "isVerified": true
+}
+
+
 ## Authentication
 
 ### Register User
@@ -309,6 +338,3 @@ This API provides endpoints for managing users, tasks, group tasks, and global t
    npm run start
    ```
 
----
-
-This README provides details on how to use the key endpoints in your NestJS application for authentication, task management, and admin assignment.
