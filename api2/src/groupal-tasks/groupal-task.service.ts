@@ -5,13 +5,15 @@ import { GroupalTask } from './schemas/groupal-task.schema';
 import { GlobalTask } from '../global-task/schemas/global-task.schema';
 import { CreateGroupalTaskDto } from './dtos/create-gruopal-task.dto';
 import { Task } from 'src/tasks/schemas/task.schema';
+import { User } from 'src/user/schemas/user.schema'; 
 
 @Injectable()
 export class GroupalTasksService {
   constructor(
     @InjectModel(GroupalTask.name) private readonly groupalTaskModel: Model<GroupalTask>,
     @InjectModel(GlobalTask.name) private readonly globalTaskModel: Model<GlobalTask>,
-    @InjectModel(Task.name) private readonly taskModel: Model<Task>
+    @InjectModel(Task.name) private readonly taskModel: Model<Task>,
+    @InjectModel(User.name) private readonly userModel: Model<User>
   ) {}
 
   async createGroupalTask(globalTaskId: string, createGroupalTaskDto: CreateGroupalTaskDto): Promise<GroupalTask> {
@@ -51,9 +53,9 @@ export class GroupalTasksService {
 
   // Método para asignar un admin a una tarea grupal
   async assignAdmin(groupalTaskId: string, newAdminId: string): Promise<GroupalTask> {
+    // Buscar la tarea grupal
     const groupalTask = await this.groupalTaskModel.findById(groupalTaskId);
-    
-    // Verificar si la tarea grupal existe
+
     if (!groupalTask) {
       throw new NotFoundException(`Groupal Task with ID "${groupalTaskId}" not found`);
     }
@@ -61,9 +63,19 @@ export class GroupalTasksService {
     // Asignar el nuevo admin a la tarea grupal
     groupalTask.admin = new Types.ObjectId(newAdminId);
 
+    // Cambiar el rol del usuario a GManager
+    const user = await this.userModel.findById(newAdminId);
+    if (!user) {
+      throw new NotFoundException(`User with ID "${newAdminId}" not found`);
+    }
+
+    user.role = 'GManager';  // Cambiar el rol del usuario
+    await user.save();  // Guardar los cambios del usuario
 
     // Guardar la tarea grupal con el nuevo admin
-    return groupalTask.save();
+    await groupalTask.save();
+
+    return groupalTask;
   }
 
 
@@ -94,6 +106,34 @@ export class GroupalTasksService {
       { groupalTasks: groupalTaskId },
       { $pull: { groupalTasks: groupalTaskId } }
     );
+  }
+  
+
+
+  async removeAdminFromGroupalTask(groupalTaskId: string): Promise<GroupalTask> {
+    // Buscar la tarea grupal
+    const groupalTask = await this.groupalTaskModel.findById(groupalTaskId);
+  
+    if (!groupalTask) {
+      throw new NotFoundException(`Groupal Task with ID "${groupalTaskId}" not found`);
+    }
+  
+    // Si hay un admin asignado, cambiar el rol de ese admin a 'User'
+    if (groupalTask.admin) {
+      const user = await this.userModel.findById(groupalTask.admin);
+      if (user) {
+        user.role = 'User';  // Cambiar el rol del admin a 'User'
+        await user.save();  // Guardar los cambios en el usuario
+      }
+    }
+  
+    // Eliminar el admin de la tarea grupal
+    groupalTask.admin = null;
+  
+    // Guardar la tarea grupal sin admin
+    await groupalTask.save();
+  
+    return groupalTask;
   }
   
   

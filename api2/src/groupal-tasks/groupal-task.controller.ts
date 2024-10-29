@@ -63,5 +63,22 @@ export class GroupalTasksController {
     return this.groupalTasksService.deleteGroupalTask(groupalTaskId);
   }
 
+
+  @UseGuards(JwtAuthGuard)
+  @Post('remove-admin/:id')
+  async removeAdminFromGroupalTask(
+    @Param('id') groupalTaskId: string,
+    @Req() req: Request
+  ) {
+    const user = req.user;
+
+    // Verificar si el usuario tiene permisos (debe ser Project Manager)
+    if (user.role !== 'PManager') {
+      throw new ForbiddenException('Only Project Managers can remove admins from group tasks.');
+    }
+
+    // Llamamos al servicio para eliminar el admin de la tarea grupal
+    return this.groupalTasksService.removeAdminFromGroupalTask(groupalTaskId);
+  }
   
 }

@@ -5,9 +5,11 @@ import { GroupalTasksService } from './groupal-task.service';
 import { GroupalTask, GroupalTaskSchema } from './schemas/groupal-task.schema'; // Importa el esquema de GroupalTask
 import { GlobalTask, GlobalTaskSchema } from '../global-task/schemas/global-task.schema'; // Importa el esquema de GlobalTask
 import { Task, TaskSchema } from 'src/tasks/schemas/task.schema';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
   imports: [
+    UserModule,
     MongooseModule.forFeature([
       { name: GroupalTask.name, schema: GroupalTaskSchema },  // Registro de GroupalTask
       { name: GlobalTask.name, schema: GlobalTaskSchema }, 
