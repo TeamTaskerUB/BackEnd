@@ -59,9 +59,7 @@ export class TasksService {
 
   async assignAssigneesToTask(taskId: string, assignees: string[], userRole: string): Promise<Task> {
     // Verificar si el rol del usuario es 'PManager'
-    if (userRole !== 'PManager') {
-      throw new ForbiddenException('Only Project Managers can assign assignees to tasks.');
-    }
+  
 
     // Buscar la tarea por su ID
     const task = await this.taskModel.findById(taskId);

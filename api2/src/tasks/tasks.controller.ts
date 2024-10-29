@@ -25,7 +25,7 @@ export class TasksController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post(':id/assign-assignees')
+  @Post('assign/:id')
   async assignAssigneesToTask(
     @Param('id') taskId: string,
     @Body('assignees') assignees: string[],
@@ -35,8 +35,13 @@ export class TasksController {
 
     // Verificar si el usuario es 'PManager'
     if (user.role !== 'PManager') {
-      throw new ForbiddenException('Only Project Managers can assign assignees to tasks.');
+      if (user.role !== 'GManager') {
+        throw new ForbiddenException('Only Project Managers or Gruopal Managers can assign assignees to tasks.');
+      }
+  
     }
+
+    
 
     // Llamamos al servicio para asignar los assignees
     return this.tasksService.assignAssigneesToTask(taskId, assignees, user.role);
