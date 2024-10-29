@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Param, Post, Req, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, NotFoundException, Param, Post, Req, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/user.dto';
 import { get } from 'mongoose';
@@ -25,7 +25,18 @@ export class UserController {
         return user; // Devuelve la respuesta
     }
 
+    @UseGuards(JwtAuthGuard)  // Asegurarte de que el usuario está autenticado
+  @Get(':id')
+  async getUserById(@Param('id') id: string) {
+    const user = await this.userService.getUserById(id);
 
+    // Si no se encuentra el usuario, lanzamos una excepción
+    if (!user) {
+      throw new NotFoundException(`User with ID "${id}" not found`);
+    }
+
+    return user;  // Devolver los datos del usuario
+  }
     
 
 
