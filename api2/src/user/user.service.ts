@@ -34,22 +34,16 @@ export class UserService {
         return newUser.save();
       }
 
-    getUserById(id: string) {
-
-        if(!Types.ObjectId.isValid(id)){
-
-            throw new BadRequestException('el id de usuairo no sirve')
+      async getUserById(id: string): Promise<User> {
+        const user = await this.userModel.findById(id).exec();
+    
+        // Si el usuario no existe, lanzamos una excepción
+        if (!user) {
+          throw new NotFoundException(`User with ID "${id}" not found`);
         }
-
-        const userdata = this.userModel.findById(id);
-        if(!userdata){
-
-            throw new BadRequestException('User no encontrado')
-
-        }
-
-        return userdata;
-    }
+    
+        return user;
+      }
     
 
 
