@@ -17,6 +17,16 @@ export class GlobalTasksService {
     private readonly userService: UserService
   ) {}
 
+  async getGlobalTaskById(globalTaskId: string): Promise<GlobalTask> {
+    const globalTask = await this.globalTaskModel.findById(globalTaskId).exec();
+
+    if (!globalTask) {
+      throw new NotFoundException(`Global Task with ID "${globalTaskId}" not found`);
+    }
+
+    return globalTask;
+  }
+
   async getGlobalTaskPreview(globalTaskId: string) {
     // Buscar la tarea global
     const globalTask = await this.globalTaskModel.findById(globalTaskId).lean();
