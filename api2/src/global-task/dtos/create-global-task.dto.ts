@@ -34,9 +34,7 @@ export class CreateGlobalTaskDto {
   @IsArray()
   @IsOptional()
   tasks?: string[];  // IDs de tareas asociadas
-  
-  @IsOptional()
-  admin: string;  // ID del admin
 
-  
+  @IsOptional()
+  status?: boolean; // Se puede asignar o dejar que use el valor por defecto (false)
 }
