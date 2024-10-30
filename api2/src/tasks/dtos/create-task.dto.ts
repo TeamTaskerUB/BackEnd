@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsDate, IsArray, IsOptional } from 'class-validator';
+import { IsString, IsNotEmpty, IsDate, IsArray, IsOptional, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateTaskDto {
@@ -30,4 +30,8 @@ export class CreateTaskDto {
   @IsString()
   @IsNotEmpty()
   globalTaskId: string;
+
+  @IsBoolean()
+  @IsOptional()
+  status?: boolean;  // Campo opcional para cambiar el status, por defecto será false
 }

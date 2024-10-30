@@ -6,7 +6,6 @@ import { GroupalTask } from '../groupal-tasks/schemas/groupal-task.schema';
 import { GlobalTask } from '../global-task/schemas/global-task.schema';
 import { CreateTaskDto } from './dtos/create-task.dto';
 
-
 @Injectable()
 export class TasksService {
   constructor(
@@ -18,9 +17,10 @@ export class TasksService {
   async createTask(createTaskDto: CreateTaskDto): Promise<Task> {
     const { groupalTaskId, globalTaskId, ...taskData } = createTaskDto;
 
-    // Crear la nueva tarea normal
+    // Crear la nueva tarea con el status inicializado a false si no se pasa
     const task = new this.taskModel({
       ...taskData,
+      status: createTaskDto.status ?? false,  // Si no se pasa el status, será false por defecto
     });
 
     const createdTask = await task.save();
@@ -60,7 +60,6 @@ export class TasksService {
   async assignAssigneesToTask(taskId: string, assignees: string[], userRole: string): Promise<Task> {
     // Verificar si el rol del usuario es 'PManager'
   
-
     // Buscar la tarea por su ID
     const task = await this.taskModel.findById(taskId);
     if (!task) {
