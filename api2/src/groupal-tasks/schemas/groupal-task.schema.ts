@@ -30,8 +30,12 @@ export class GroupalTask {
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Task' }], default: [] })
   tasks: Types.ObjectId[];
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: false})
+  @Prop({ type: Types.ObjectId, ref: 'User', required: false })
   admin: Types.ObjectId;
+
+  // Campo de status que es false por defecto
+  @Prop({ type: Boolean, default: false })
+  status: boolean;
 }
 
 export const GroupalTaskSchema = SchemaFactory.createForClass(GroupalTask);
