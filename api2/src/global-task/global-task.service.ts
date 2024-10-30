@@ -59,7 +59,6 @@ export class GlobalTasksService {
       groupalTasks: groupalTasksWithTasks, // Solo incluimos las groupal tasks con sus tasks
     };
   }
-  
 
   async createGlobalTask(createGlobalTaskDto: CreateGlobalTaskDto, userId: string): Promise<GlobalTask> {
     // Verificar que el usuario tenga rol de PManager
@@ -70,12 +69,13 @@ export class GlobalTasksService {
       throw new ForbiddenException('No tienes permisos para crear una tarea global');
     }
 
-    // Crear la tarea global con los arrays vacíos de tasks y grupalTasks
+    // Crear la tarea global con los arrays vacíos de tasks, grupalTasks y status en false
     const globalTask = new this.globalTaskModel({
       ...createGlobalTaskDto,
       admin: userId, // Asignamos el userId como admin
       grupalTasks: [], // Inicializamos arrays vacíos
       tasks: [],
+      status: false, // Status por defecto false
     });
 
     // Guardar en la base de datos
@@ -89,20 +89,13 @@ export class GlobalTasksService {
       throw new NotFoundException(`Global Task with ID "${globalTaskId}" not found`);
     }
   
-
     const user = await this.userService.getUserById(userId);
-    
-
     if (user.role !== 'PManager') {
       throw new ForbiddenException('No tienes permisos para eliminar una tarea global');
     }
 
-    
     // Eliminar todas las tareas grupales e individuales asociadas a la tarea global
     for (const groupalTaskId of globalTask.groupalTasks) {
-
-      
-
       const groupalTask = await this.groupalTaskModel.findById(groupalTaskId);
   
       if (groupalTask) {
@@ -119,6 +112,5 @@ export class GlobalTasksService {
     // Eliminar la tarea global
     await this.globalTaskModel.deleteOne({ _id: globalTaskId });
   }
-  
   
 }

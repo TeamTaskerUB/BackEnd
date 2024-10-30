@@ -34,7 +34,13 @@ export class GlobalTask extends Document {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   admin: Types.ObjectId;
 
-  
+  // Campo para manejar el estado (status) de la tarea
+  @Prop({ type: Boolean, default: true })
+  status: boolean;
+
+  // Control de versiones __v
+  @Prop({ type: Number, select: false })  // Mongoose lo maneja automáticamente, pero si quieres incluirlo:
+  __v: number;
 }
 
 export const GlobalTaskSchema = SchemaFactory.createForClass(GlobalTask);
