@@ -17,6 +17,30 @@ export class GlobalTasksService {
     private readonly userService: UserService
   ) {}
 
+  async getUserRoleInGlobalTask(globalTaskId: string, userId: string): Promise<string> {
+    // Buscar la tarea global por su ID
+    const globalTask = await this.globalTaskModel.findById(globalTaskId).exec();
+    if (!globalTask) {
+      throw new NotFoundException(`Global Task with ID "${globalTaskId}" not found`);
+    }
+
+    // Verificar si el usuario es administrador de la tarea global
+    if (globalTask.admin.toString() === userId) {
+      return 'PManager'; // Retornar el rol de PManager si es admin de la tarea global
+    }
+
+    // Verificar si el usuario es administrador de alguna tarea grupal adyacente
+    for (const groupalTaskId of globalTask.groupalTasks) {
+      const groupalTask = await this.groupalTaskModel.findById(groupalTaskId).exec();
+      if (groupalTask && groupalTask.admin && groupalTask.admin.toString() === userId) {
+        return 'GManager'; // Retornar el rol de GManager si es admin de una tarea grupal
+      }
+    }
+
+    // Si no es admin de la tarea global ni de ninguna grupal, se considera un 'User'
+    return 'User';
+  }
+
   async getGlobalTaskById(globalTaskId: string): Promise<GlobalTask> {
     const globalTask = await this.globalTaskModel.findById(globalTaskId).exec();
 

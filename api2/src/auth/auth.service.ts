@@ -30,17 +30,14 @@ export class AuthService {
       throw new UnauthorizedException('no existe ese usuario');
     }
 
-    // Comparamos la contraseña hasheada
     const isPasswordValid = await bcrypt.compare(password, user.password);
-
     if (!isPasswordValid) {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
-    // Creamos el payload para el JWT
-    const payload = { username: user.name, sub: user._id, role: user.role };
+    // Crear el payload solo con userId y username, sin rol
+    const payload = { username: user.name, sub: user._id };
 
-    // Generamos el JWT
     return {
       access_token: this.jwtService.sign(payload),
     };
