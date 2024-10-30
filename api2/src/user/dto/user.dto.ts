@@ -18,9 +18,7 @@ export class CreateUserDto {
     @IsInt()
     age: number;
 
-    @IsNotEmpty()
-    @IsString()
-    role: string;
+    
 
     @IsArray()
     @IsOptional()

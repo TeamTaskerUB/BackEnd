@@ -16,9 +16,6 @@ export class User {
     @Prop({ required: true })
     age: number;
 
-    @Prop({ required: true })
-    role: string;
-
     @Prop({ type: [{ type: Types.ObjectId, ref: 'Proyect' }], default: [] })
     proyects: Types.ObjectId[]; // Referencia a una colección de proyectos
 }

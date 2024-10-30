@@ -18,5 +18,6 @@ import { UserModule } from 'src/user/user.module';
   ],
   controllers: [GlobalTasksController],
   providers: [GlobalTasksService],
+  exports:[GlobalTasksService]
 })
 export class GlobalTaskModule {}

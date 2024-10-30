@@ -30,6 +30,6 @@ export class GlobalTasksController {
   async deleteGlobalTask(@Param('id') globalTaskId: string, @Req() req: Request) {
     const user = req.user;
     // Llamamos al servicio para eliminar la tarea global y sus tareas grupales e individuales asociadas
-    return this.globalTasksService.deleteGlobalTask(globalTaskId, user.userId);
+    return this.globalTasksService.deleteGlobalTask(globalTaskId);
   }
 }
