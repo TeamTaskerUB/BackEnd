@@ -29,6 +29,11 @@ export class GlobalTasksController {
   @Delete(':id')
   async deleteGlobalTask(@Param('id') globalTaskId: string, @Req() req: Request) {
     const user = req.user;
+
+    if (user.role !== 'PManager') {
+      throw new ForbiddenException('Solo el proyect Manager de la tarea lo puede borrar');
+    }
+
     // Llamamos al servicio para eliminar la tarea global y sus tareas grupales e individuales asociadas
     return this.globalTasksService.deleteGlobalTask(globalTaskId);
   }
