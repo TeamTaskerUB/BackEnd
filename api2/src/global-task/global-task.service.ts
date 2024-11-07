@@ -21,20 +21,32 @@ export class GlobalTasksService {
     if (!globalTask) {
       throw new NotFoundException(`Global Task with ID "${globalTaskId}" not found`);
     }
-
+  
+    // Verificar si el usuario es administrador de la tarea global
     if (globalTask.admin.toString() === userId) {
       return 'PManager';
     }
-
+  
+    // Verificar si el usuario es administrador de alguna tarea grupal adyacente
     for (const groupalTaskId of globalTask.groupalTasks) {
       const groupalTask = await this.groupalTaskModel.findById(groupalTaskId).exec();
       if (groupalTask && groupalTask.admin && groupalTask.admin.toString() === userId) {
         return 'GManager';
       }
     }
-
-    return 'User';
+  
+    // Verificar si el usuario está asignado en alguna tarea individual
+    const tasks = await this.taskModel.find({ _id: { $in: globalTask.tasks } }).exec();
+    for (const task of tasks) {
+      if (task.assignees.some(assigneeId => assigneeId.toString() === userId)) {
+        return 'User';
+      }
+    }
+  
+    // Si no es admin ni asignado en ninguna tarea, devolvemos 'noUser' o algún valor indicativo
+    return 'noUser';
   }
+  
 
   async getGlobalTaskById(globalTaskId: string): Promise<GlobalTask> {
     const globalTask = await this.globalTaskModel.findById(globalTaskId).exec();

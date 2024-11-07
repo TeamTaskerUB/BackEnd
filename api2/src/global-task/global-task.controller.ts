@@ -5,12 +5,21 @@ import { CreateGlobalTaskDto } from './dtos/create-global-task.dto';
 import { Request } from 'express';
 
 @Controller('global-tasks')
+
 export class GlobalTasksController {
   constructor(private readonly globalTasksService: GlobalTasksService) {}
 
   @UseGuards(JwtAuthGuard) // Protección de ruta con JWT
   @Get(':id')
-  async getGlobalTaskPreview(@Param('id') id: string) {
+  async getGlobalTaskPreview(@Param('id') id: string, @Req() req: Request) {
+
+    
+
+    const userId = req.user.userId;
+    const userRole = await this.globalTasksService.getUserRoleInGlobalTask(id, userId);
+    if (userRole == 'noUser') {
+    throw new ForbiddenException('No puedes acceder no siendo parte del proyecto');
+    }
     return this.globalTasksService.getGlobalTaskPreview(id);
   }
 
@@ -26,12 +35,18 @@ export class GlobalTasksController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete(':id')
-  async deleteGlobalTask(@Param('id') globalTaskId: string, @Req() req: Request) {
+  @Delete('delete')
+  async deleteGlobalTask( @Req() req: Request) {
     const user = req.user;
 
+    const globalTaskId = req.body.globalTaskId || req.query.globalTaskId || req.params.globalTaskId;
+
+    console.log(user);
+
+    console.log("hola");
+
     if (user.role !== 'PManager') {
-      throw new ForbiddenException('Solo el proyect Manager de la tarea lo puede borrar');
+      throw new ForbiddenException('Solo el proyect Manager de la tarea lo pued hollasldalsdla');
     }
 
     // Llamamos al servicio para eliminar la tarea global y sus tareas grupales e individuales asociadas

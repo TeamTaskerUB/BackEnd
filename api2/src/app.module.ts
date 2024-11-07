@@ -8,7 +8,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TasksModule } from './tasks/tasks.module';
 import { GlobalTaskModule } from './global-task/global-task.module';
 import { GroupalTaskModule } from './groupal-tasks/groupal-task.module';
-import { RoleMiddleware } from './middlewares/role.middleware'; // Importamos el middleware
+ // Importamos el middleware
 
 @Module({
   imports: [ 
@@ -32,13 +32,4 @@ import { RoleMiddleware } from './middlewares/role.middleware'; // Importamos el
   providers: [AppService],
 })
 export class AppModule {
-  configure(consumer: MiddlewareConsumer) {
-    // Aplicamos el middleware de Role a todas las rutas de Tasks y GroupalTasks
-    consumer
-      .apply(RoleMiddleware)
-      .forRoutes(
-        { path: 'tasks', method: RequestMethod.ALL },  // Todas las rutas de tasks
-        { path: 'groupal-tasks', method: RequestMethod.ALL }  // Todas las rutas de groupal tasks
-      );
-  }
 }
