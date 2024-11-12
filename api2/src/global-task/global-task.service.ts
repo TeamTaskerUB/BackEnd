@@ -6,6 +6,7 @@ import { GroupalTask } from '../groupal-tasks/schemas/groupal-task.schema';
 import { Task } from '../tasks/schemas/task.schema';
 import { CreateGlobalTaskDto } from './dtos/create-global-task.dto';
 import { UserService } from 'src/user/user.service';
+import { User } from 'src/user/schemas/user.schema';
 
 @Injectable()
 export class GlobalTasksService {
@@ -13,6 +14,7 @@ export class GlobalTasksService {
     @InjectModel(GlobalTask.name) private readonly globalTaskModel: Model<GlobalTask>,
     @InjectModel(GroupalTask.name) private readonly groupalTaskModel: Model<GroupalTask>,
     @InjectModel(Task.name) private readonly taskModel: Model<Task>,
+    @InjectModel(User.name) private readonly userModel: Model<User>,
     private readonly userService: UserService
   ) {}
 
@@ -100,7 +102,16 @@ export class GlobalTasksService {
       status: false,
     });
 
-    return globalTask.save();
+    const createdGlobalTask = await globalTask.save();
+
+    // Agregar el ID de la tarea global al usuario que la creó
+    await this.userModel.findByIdAndUpdate(
+      userId,
+      { $push: { tasks: createdGlobalTask._id } }, // Agregar el ID de la tarea al array tasks del usuario
+      { new: true } // Opcional: Devuelve el usuario actualizado
+    );
+
+    return createdGlobalTask;
   }
 
   async deleteGlobalTask(globalTaskId: string, userId: string): Promise<void> {

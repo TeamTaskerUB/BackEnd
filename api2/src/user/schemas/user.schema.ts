@@ -17,7 +17,7 @@ export class User {
     age: number;
 
     @Prop({ type: [{ type: Types.ObjectId, ref: 'Proyect' }], default: [] })
-    proyects: Types.ObjectId[]; // Referencia a una colección de proyectos
+    tasks: Types.ObjectId[]; // Referencia a una colección de proyectos
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
