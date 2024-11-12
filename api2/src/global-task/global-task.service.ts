@@ -56,7 +56,15 @@ export class GlobalTasksService {
     return globalTask;
   }
 
-  async getGlobalTaskPreview(globalTaskId: string) {
+  async getGlobalTaskPreview(userId: string, globalTaskId: string) {
+
+
+    const userRole = await this.getUserRoleInGlobalTask(globalTaskId, userId);
+    console.log(userRole);
+    if (userRole == 'noUser') {
+    throw new ForbiddenException('No puedes acceder no siendo parte del proyecto');
+    }
+
     const globalTask = await this.globalTaskModel.findById(globalTaskId).lean();
     if (!globalTask) {
       throw new NotFoundException(`Global Task with ID "${globalTaskId}" not found`);
@@ -95,7 +103,16 @@ export class GlobalTasksService {
     return globalTask.save();
   }
 
-  async deleteGlobalTask(globalTaskId: string): Promise<void> {
+  async deleteGlobalTask(globalTaskId: string, userId: string): Promise<void> {
+
+    const userRole = await this.getUserRoleInGlobalTask(globalTaskId, userId);
+    console.log(userRole);
+    if (userRole !== 'PManager') {
+    throw new ForbiddenException('No puedes acceder no siendo parte del proyecto');
+    }
+
+
+    
     const globalTask = await this.globalTaskModel.findById(globalTaskId);
     if (!globalTask) {
       throw new NotFoundException(`Global Task with ID "${globalTaskId}" not found`);

@@ -12,9 +12,14 @@ export class GroupalTasksController {
   @Post('create/:globalTaskId')
   async createGroupalTask(
     @Param('globalTaskId') globalTaskId: string, // ID de la tarea global asociada
-    @Body() createGroupalTaskDto: CreateGroupalTaskDto
+    @Body() createGroupalTaskDto: CreateGroupalTaskDto,
+    @Req() req:Request
   ) {
-    return this.groupalTasksService.createGroupalTask(globalTaskId, createGroupalTaskDto);
+
+
+    const userId = req.user.userId;
+
+    return this.groupalTasksService.createGroupalTask(globalTaskId, createGroupalTaskDto, userId);
   }
 
   @UseGuards(JwtAuthGuard)

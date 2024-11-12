@@ -1,24 +1,34 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { GroupalTask } from './schemas/groupal-task.schema';
 import { GlobalTask } from '../global-task/schemas/global-task.schema';
 import { CreateGroupalTaskDto } from './dtos/create-gruopal-task.dto';
 import { Task } from 'src/tasks/schemas/task.schema';
+import { GlobalTasksService } from 'src/global-task/global-task.service';
 
 @Injectable()
 export class GroupalTasksService {
   constructor(
     @InjectModel(GroupalTask.name) private readonly groupalTaskModel: Model<GroupalTask>,
     @InjectModel(GlobalTask.name) private readonly globalTaskModel: Model<GlobalTask>,
-    @InjectModel(Task.name) private readonly taskModel: Model<Task>
+    @InjectModel(Task.name) private readonly taskModel: Model<Task>,
+    private readonly globalTasksService: GlobalTasksService
   ) {}
 
-  async createGroupalTask(globalTaskId: string, createGroupalTaskDto: CreateGroupalTaskDto): Promise<GroupalTask> {
+  async createGroupalTask(globalTaskId: string, createGroupalTaskDto: CreateGroupalTaskDto, userId:string): Promise<GroupalTask> {
     const groupalTask = new this.groupalTaskModel({
       ...createGroupalTaskDto,
       status: false,
     });
+
+    const userRole = await this.globalTasksService.getUserRoleInGlobalTask(globalTaskId, userId);
+    console.log(userRole);
+    if (userRole !== 'PManager') {
+    throw new ForbiddenException('No puedes crear una tarea grupal si ser el PM');
+    }
+
+
 
     const createdGroupalTask = await groupalTask.save();
 

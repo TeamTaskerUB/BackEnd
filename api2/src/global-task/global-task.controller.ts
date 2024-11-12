@@ -16,11 +16,8 @@ export class GlobalTasksController {
     
 
     const userId = req.user.userId;
-    const userRole = await this.globalTasksService.getUserRoleInGlobalTask(id, userId);
-    if (userRole == 'noUser') {
-    throw new ForbiddenException('No puedes acceder no siendo parte del proyecto');
-    }
-    return this.globalTasksService.getGlobalTaskPreview(id);
+    
+    return this.globalTasksService.getGlobalTaskPreview(userId, id);
   }
 
   @UseGuards(JwtAuthGuard) // Proteger con JWT
@@ -41,15 +38,9 @@ export class GlobalTasksController {
 
     const globalTaskId = req.body.globalTaskId || req.query.globalTaskId || req.params.globalTaskId;
 
-    console.log(user);
-
-    console.log("hola");
-
-    if (user.role !== 'PManager') {
-      throw new ForbiddenException('Solo el proyect Manager de la tarea lo pued hollasldalsdla');
-    }
-
+    const userId = req.user.userId;
+    
     // Llamamos al servicio para eliminar la tarea global y sus tareas grupales e individuales asociadas
-    return this.globalTasksService.deleteGlobalTask(globalTaskId);
+    return this.globalTasksService.deleteGlobalTask(globalTaskId, userId);
   }
 }
