@@ -43,4 +43,15 @@ export class GlobalTasksController {
     // Llamamos al servicio para eliminar la tarea global y sus tareas grupales e individuales asociadas
     return this.globalTasksService.deleteGlobalTask(globalTaskId, userId);
   }
+
+
+  @UseGuards(JwtAuthGuard) // Protección de ruta con JWT
+  @Get('user-tasks/:id')
+  async getUserGlobalTasks(@Param('id') id: string ,@Req() req: Request) {
+    const userId = req.user.userId;
+    console.log(req.user);
+    return this.globalTasksService.getUserGlobalTasks(userId);
+  
+  }
+  
 }

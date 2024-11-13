@@ -37,6 +37,9 @@ export class GlobalTasksService {
       }
     }
   
+    
+  
+  
     // Verificar si el usuario está asignado en alguna tarea individual
     const tasks = await this.taskModel.find({ _id: { $in: globalTask.tasks } }).exec();
     for (const task of tasks) {
@@ -140,5 +143,16 @@ export class GlobalTasksService {
     }
 
     await this.globalTaskModel.deleteOne({ _id: globalTaskId });
+  }
+
+  async getUserGlobalTasks(userId: string): Promise<GlobalTask[]> {
+    // Obtener el usuario y sus IDs de tareas
+    const user = await this.userModel.findById(userId).exec();
+    if (!user) {
+      throw new NotFoundException(`User with ID "${userId}" not found`);
+    }
+  
+    // Buscar todas las Global Tasks usando los IDs obtenidos del usuario
+    return this.globalTaskModel.find({ _id: { $in: user.tasks } }).exec();
   }
 }
