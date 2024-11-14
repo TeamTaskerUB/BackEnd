@@ -118,20 +118,18 @@ export class GlobalTasksService {
   }
 
   async deleteGlobalTask(globalTaskId: string, userId: string): Promise<void> {
-
     const userRole = await this.getUserRoleInGlobalTask(globalTaskId, userId);
     console.log(userRole);
     if (userRole !== 'PManager') {
-    throw new ForbiddenException('No puedes acceder no siendo parte del proyecto');
+      throw new ForbiddenException('No puedes acceder no siendo parte del proyecto');
     }
-
-
-    
+  
     const globalTask = await this.globalTaskModel.findById(globalTaskId);
     if (!globalTask) {
       throw new NotFoundException(`Global Task with ID "${globalTaskId}" not found`);
     }
-
+  
+    // Eliminar todas las tareas grupales e individuales asociadas a la tarea global
     for (const groupalTaskId of globalTask.groupalTasks) {
       const groupalTask = await this.groupalTaskModel.findById(groupalTaskId);
       if (groupalTask) {
@@ -141,8 +139,16 @@ export class GlobalTasksService {
         await this.groupalTaskModel.deleteOne({ _id: groupalTaskId });
       }
     }
-
+  
+    // Eliminar la tarea global
     await this.globalTaskModel.deleteOne({ _id: globalTaskId });
+  
+    // Eliminar el ID de la tarea global del array de tareas del usuario
+    await this.userModel.findByIdAndUpdate(
+      userId,
+      { $pull: { tasks: globalTaskId } }, // Elimina el ID de la tarea del array `tasks`
+      { new: true }
+    );
   }
 
   async getUserGlobalTasks(userId: string): Promise<GlobalTask[]> {
