@@ -50,7 +50,7 @@ export class GlobalTasksController {
   async getUserGlobalTasks(@Param('id') id: string ,@Req() req: Request) {
     const userId = req.user.userId;
     console.log(req.user);
-    return this.globalTasksService.getUserGlobalTasks(userId);
+    return this.globalTasksService.getUserGlobalTasks(id);
   
   }
   
