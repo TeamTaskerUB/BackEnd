@@ -33,6 +33,9 @@ export class GroupalTask {
   @Prop({ type: Types.ObjectId, ref: 'User', required: false })
   admin: Types.ObjectId;
 
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }], default: [] }) // Agregamos el campo members
+  members: Types.ObjectId[];
+
   // Campo de status que es false por defecto
   @Prop({ type: Boolean, default: false })
   status: boolean;

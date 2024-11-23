@@ -53,5 +53,29 @@ export class GlobalTasksController {
     return this.globalTasksService.getUserGlobalTasks(userId);
   
   }
+
+   // Ruta para agregar un miembro a una Global Task
+   @UseGuards(JwtAuthGuard)
+   @Post(':id/add-member')
+   async addMemberToGlobalTask(
+     @Param('id') globalTaskId: string,
+     @Body('userId') userId: string,
+     @Req() req: Request,
+   ) {
+     const requesterId = req.user.userId; // Usuario que realiza la solicitud
+     return this.globalTasksService.addMemberToGlobalTask(globalTaskId, userId, requesterId);
+   }
+ 
+   // Ruta para eliminar un miembro de una Global Task
+   @UseGuards(JwtAuthGuard)
+   @Delete(':id/remove-member')
+   async removeMemberFromGlobalTask(
+     @Param('id') globalTaskId: string,
+     @Body('userId') userId: string,
+     @Req() req: Request,
+   ) {
+     const requesterId = req.user.userId; // Usuario que realiza la solicitud
+     return this.globalTasksService.removeMemberFromGlobalTask(globalTaskId, userId, requesterId);
+   }
   
 }

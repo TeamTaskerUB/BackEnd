@@ -85,5 +85,29 @@ export class GroupalTasksController {
     // Llamamos al servicio para eliminar el admin de la tarea grupal
     return this.groupalTasksService.removeAdminFromGroupalTask(groupalTaskId);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/add-member')
+  async addMemberToGroupalTask(
+    @Param('id') groupalTaskId: string,
+    @Body('userId') userId: string,
+    @Req() req: Request,
+  ) {
+    const requesterId = req.user.userId; // Usuario que realiza la solicitud
+    return this.groupalTasksService.addMemberToGroupalTask(groupalTaskId, userId, requesterId);
+  }
+
+  // Ruta para eliminar un miembro de una Groupal Task
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id/remove-member')
+  async removeMemberFromGroupalTask(
+    @Param('id') groupalTaskId: string,
+    @Body('userId') userId: string,
+    @Req() req: Request,
+  ) {
+    const requesterId = req.user.userId; // Usuario que realiza la solicitud
+    return this.groupalTasksService.removeMemberFromGroupalTask(groupalTaskId, userId, requesterId);
+  }
+ 
   
 }

@@ -34,6 +34,9 @@ export class GlobalTask extends Document {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   admin: Types.ObjectId;
 
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }], default: [] }) // Agregamos el campo members
+  members: Types.ObjectId[];
+
   // Campo para manejar el estado (status) de la tarea
   @Prop({ type: Boolean, default: true })
   status: boolean;

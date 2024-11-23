@@ -98,4 +98,50 @@ export class GroupalTasksService {
     await groupalTask.save();
     return groupalTask;
   }
+
+  async addMemberToGroupalTask(groupalTaskId: string, userId: string, requesterId: string): Promise<GroupalTask> {
+    const groupalTask = await this.groupalTaskModel.findById(groupalTaskId);
+    if (!groupalTask) {
+      throw new NotFoundException(`Groupal Task with ID "${groupalTaskId}" not found`);
+    }
+  
+    if (groupalTask.admin.toString() !== requesterId) {
+      throw new ForbiddenException('Only the admin can add members to this groupal task.');
+    }
+  
+    const userObjectId = new Types.ObjectId(userId); // Convertir userId a ObjectId
+  
+    if (!groupalTask.members.includes(userObjectId)) {
+      groupalTask.members.push(userObjectId); // Agregar como ObjectId
+      await groupalTask.save();
+    }
+  
+    return groupalTask;
+  }
+  async removeMemberFromGroupalTask(groupalTaskId: string, userId: string, requesterId: string): Promise<GroupalTask> {
+    const groupalTask = await this.groupalTaskModel.findById(groupalTaskId);
+    if (!groupalTask) {
+      throw new NotFoundException(`Groupal Task with ID "${groupalTaskId}" not found`);
+    }
+  
+    // Verificar si el requester es el admin
+    if (groupalTask.admin.toString() !== requesterId) {
+      throw new ForbiddenException('Only the admin can remove members from this groupal task.');
+    }
+  
+    const userObjectId = new Types.ObjectId(userId); // Convertir userId a ObjectId
+  
+    // Verificar si el usuario está en la lista de miembros
+    if (groupalTask.members.includes(userObjectId)) {
+      groupalTask.members = groupalTask.members.filter(
+        (memberId) => memberId.toString() !== userObjectId.toString(),
+      ); // Filtrar al usuario
+      await groupalTask.save();
+    } else {
+      throw new NotFoundException('User is not a member of this groupal task.');
+    }
+  
+    return groupalTask;
+  }
+  
 }

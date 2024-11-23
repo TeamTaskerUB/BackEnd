@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { GlobalTask } from './schemas/global-task.schema';
 import { GroupalTask } from '../groupal-tasks/schemas/groupal-task.schema';
 import { Task } from '../tasks/schemas/task.schema';
@@ -161,4 +161,51 @@ export class GlobalTasksService {
     // Buscar todas las Global Tasks usando los IDs obtenidos del usuario
     return this.globalTaskModel.find({ _id: { $in: user.tasks } }).exec();
   }
+  
+async addMemberToGlobalTask(globalTaskId: string, userId: string, requesterId: string): Promise<GlobalTask> {
+  const globalTask = await this.globalTaskModel.findById(globalTaskId);
+  if (!globalTask) {
+    throw new NotFoundException(`Global Task with ID "${globalTaskId}" not found`);
+  }
+
+  if (globalTask.admin.toString() !== requesterId) {
+    throw new ForbiddenException('Only the admin can add members to this global task.');
+  }
+
+  const userObjectId = new Types.ObjectId(userId); // Convertir userId a ObjectId
+
+  if (!globalTask.members.includes(userObjectId)) {
+    globalTask.members.push(userObjectId); // Agregar como ObjectId
+    await globalTask.save();
+  }
+
+  return globalTask;
+}
+  
+async removeMemberFromGlobalTask(globalTaskId: string, userId: string, requesterId: string): Promise<GlobalTask> {
+  const globalTask = await this.globalTaskModel.findById(globalTaskId);
+  if (!globalTask) {
+    throw new NotFoundException(`Global Task with ID "${globalTaskId}" not found`);
+  }
+
+  // Verificar si el requester es el admin
+  if (globalTask.admin.toString() !== requesterId) {
+    throw new ForbiddenException('Only the admin can remove members from this global task.');
+  }
+
+  const userObjectId = new Types.ObjectId(userId); // Convertir userId a ObjectId
+
+  // Verificar si el usuario está en la lista de miembros
+  if (globalTask.members.includes(userObjectId)) {
+    globalTask.members = globalTask.members.filter(
+      (memberId) => memberId.toString() !== userObjectId.toString(),
+    ); // Filtrar al usuario
+    await globalTask.save();
+  } else {
+    throw new NotFoundException('User is not a member of this global task.');
+  }
+
+  return globalTask;
+}
+
 }
