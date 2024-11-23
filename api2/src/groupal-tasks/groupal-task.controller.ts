@@ -22,15 +22,6 @@ export class GroupalTasksController {
     return this.groupalTasksService.createGroupalTask(globalTaskId, createGroupalTaskDto, userId);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Get(':id/')
-  async getGroupalTaskPreview(@Param('id') id: string) {
-    const groupalTask = await this.groupalTasksService.getGroupalTaskPreview(id);
-    if (!groupalTask) {
-      throw new NotFoundException(`Groupal Task with ID "${id}" not found`);
-    }
-    return groupalTask;
-  }
 
 
   @UseGuards(JwtAuthGuard)

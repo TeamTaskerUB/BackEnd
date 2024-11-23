@@ -6,6 +6,7 @@ import { GlobalTask } from '../global-task/schemas/global-task.schema';
 import { CreateGroupalTaskDto } from './dtos/create-gruopal-task.dto';
 import { Task } from 'src/tasks/schemas/task.schema';
 import { GlobalTasksService } from 'src/global-task/global-task.service';
+import { User } from 'src/user/schemas/user.schema';
 
 @Injectable()
 export class GroupalTasksService {
@@ -13,6 +14,8 @@ export class GroupalTasksService {
     @InjectModel(GroupalTask.name) private readonly groupalTaskModel: Model<GroupalTask>,
     @InjectModel(GlobalTask.name) private readonly globalTaskModel: Model<GlobalTask>,
     @InjectModel(Task.name) private readonly taskModel: Model<Task>,
+    @InjectModel(User.name) private readonly userModel: Model<User>,
+    
     private readonly globalTasksService: GlobalTasksService
   ) {}
 
@@ -43,19 +46,63 @@ export class GroupalTasksService {
     return createdGroupalTask;
   }
 
-  async getGroupalTaskPreview(groupalTaskId: string) {
+  async getGroupalTaskPreview(userId: string, groupalTaskId: string) {
     const groupalTask = await this.groupalTaskModel.findById(groupalTaskId).lean();
     if (!groupalTask) {
       throw new NotFoundException(`Groupal Task with ID "${groupalTaskId}" not found`);
     }
-
-    const tasks = await this.taskModel.find({ _id: { $in: groupalTask.tasks } }).lean();
+  
+    
+    // Obtener el administrador del equipo grupal
+    const admin = groupalTask.admin
+      ? await this.userModel.findById(groupalTask.admin).select('name email').lean()
+      : null;
+  
+    // Obtener los miembros del equipo grupal
+    const members = await this.userModel
+      .find({ _id: { $in: groupalTask.members } })
+      .select('name email')
+      .lean();
+  
+    // Obtener los detalles de las tareas (nombres y estado)
+    const tasks = await this.taskModel
+      .find({ _id: { $in: groupalTask.tasks } })
+      .select('name status')
+      .lean();
+  
+    // Calcular el progreso del equipo grupal
+    const totalTasks = tasks.length;
+    const completedTasks = tasks.filter(task => task.status).length;
+  
+    const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+  
+    // Mapear el rol del usuario
+    const roleMapping = {
+      PManager: 'ProjectAdmin',
+      GManager: 'GroupAdmin',
+      User: 'User',
+    };
+    
+  
     return {
       ...groupalTask,
-      tasks,
+      createdBy: admin ? admin.name : null,
+      adminEmail: admin ? admin.email : null,
+      members: {
+        count: members.length,
+        list: members, // Lista con `name` y `email` de cada miembro
+      },
+      tasks: {
+        count: tasks.length,
+        list: tasks, // Lista con `name` y `status` de cada tarea
+      },
+      progress: progress.toFixed(2),
+      role: 1, // Rol de la persona que hace la solicitud
     };
   }
-
+  
+  
+  
   async assignAdmin(groupalTaskId: string, newAdminId: string): Promise<GroupalTask> {
     const groupalTask = await this.groupalTaskModel.findById(groupalTaskId);
     if (!groupalTask) {

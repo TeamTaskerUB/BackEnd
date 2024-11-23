@@ -14,7 +14,7 @@ export class GlobalTasksService {
     @InjectModel(GlobalTask.name) private readonly globalTaskModel: Model<GlobalTask>,
     @InjectModel(GroupalTask.name) private readonly groupalTaskModel: Model<GroupalTask>,
     @InjectModel(Task.name) private readonly taskModel: Model<Task>,
-    @InjectModel(User.name) private readonly userModel: Model<User>,
+    @InjectModel(User.name) protected readonly userModel: Model<User>,
     private readonly userService: UserService
   ) {}
 
