@@ -61,40 +61,69 @@ export class GlobalTasksService {
     return globalTask;
   }
 
+  
   async getGlobalTaskPreview(userId: string, globalTaskId: string) {
-
-
     const userRole = await this.getUserRoleInGlobalTask(globalTaskId, userId);
-    console.log(userRole);
-    if (userRole == 'noUser') {
-    throw new ForbiddenException('No puedes acceder no siendo parte del proyecto');
+  
+    if (userRole === 'noUser') {
+      throw new ForbiddenException('No puedes acceder no siendo parte del proyecto');
     }
-
+  
     const globalTask = await this.globalTaskModel.findById(globalTaskId).lean();
     if (!globalTask) {
       throw new NotFoundException(`Global Task with ID "${globalTaskId}" not found`);
     }
-
-    const groupalTasksWithTasks = await Promise.all(
-      globalTask.groupalTasks.map(async (groupalTaskId) => {
-        const groupalTask = await this.groupalTaskModel.findById(groupalTaskId).lean();
-        if (!groupalTask) {
-          throw new NotFoundException(`Groupal Task with ID "${groupalTaskId}" not found`);
-        }
-
-        const tasks = await this.taskModel.find({ _id: { $in: groupalTask.tasks } }).lean();
-        return {
-          ...groupalTask,
-          tasks,
-        };
-      })
-    );
-
+  
+    // Obtener el administrador del proyecto
+    const admin = await this.userModel.findById(globalTask.admin).select('name').lean();
+    if (!admin) {
+      throw new NotFoundException('Admin not found');
+    }
+  
+    // Obtener los miembros del proyecto (nombre y correo)
+    const members = await this.userModel
+      .find({ _id: { $in: globalTask.members } })
+      .select('name email')
+      .lean();
+  
+    // Calcular el porcentaje de avance del proyecto
+    const totalTasks = globalTask.tasks.length;
+    const completedTasks = await this.taskModel.countDocuments({
+      _id: { $in: globalTask.tasks },
+      status: true,
+    });
+  
+    const totalGroupalTasks = globalTask.groupalTasks.length;
+    const completedGroupalTasks = await this.groupalTaskModel.countDocuments({
+      _id: { $in: globalTask.groupalTasks },
+      status: true,
+    });
+  
+    const totalItems = totalTasks + totalGroupalTasks;
+    const completedItems = completedTasks + completedGroupalTasks;
+    const progress = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
+  
+    // Mapear el rol del usuario que hace la solicitud
+    const roleMapping = {
+      PManager: 'ProjectAdmin',
+      GManager: 'GroupAdmin',
+      User: 'User',
+    };
+    const role = roleMapping[userRole] || 'User';
+  
     return {
       ...globalTask,
-      groupalTasks: groupalTasksWithTasks,
+      createdBy: admin.name,
+      members: {
+        count: members.length,
+        list: members, // Lista con `name` y `email` de cada miembro
+      },
+      teams: globalTask.groupalTasks.length,
+      progress: progress,
+      role: role, // Rol de la persona que hace la solicitud
     };
   }
+  
 
   async createGlobalTask(createGlobalTaskDto: CreateGlobalTaskDto, userId: string): Promise<GlobalTask> {
     const globalTask = new this.globalTaskModel({
