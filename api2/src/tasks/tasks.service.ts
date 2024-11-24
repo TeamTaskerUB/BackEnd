@@ -15,39 +15,39 @@ export class TasksService {
   ) {}
 
   async createTask(createTaskDto: CreateTaskDto): Promise<Task> {
-    const { groupalTaskId, globalTaskId, ...taskData } = createTaskDto;
-
+    const { groupalTaskId, ...taskData } = createTaskDto;
+  
     // Crear la nueva tarea con el status inicializado a false si no se pasa
     const task = new this.taskModel({
       ...taskData,
-      status: createTaskDto.status ?? false,  // Si no se pasa el status, será false por defecto
+      status: createTaskDto.status ?? false, // Si no se pasa el status, será false por defecto
     });
-
+  
     const createdTask = await task.save();
-
+  
     // Buscar la tarea grupal por su ID
     const groupalTask = await this.groupalTaskModel.findById(groupalTaskId);
     if (!groupalTask) {
       throw new NotFoundException(`Groupal Task with ID "${groupalTaskId}" not found`);
     }
-
+  
     // Añadir el ID de la tarea normal a la tarea grupal
     groupalTask.tasks.push(createdTask._id);
     await groupalTask.save();
-
-    // Buscar la tarea global por su ID
-    const globalTask = await this.globalTaskModel.findById(globalTaskId);
+  
+    // Encontrar la tarea global relacionada con esta tarea grupal
+    const globalTask = await this.globalTaskModel.findOne({ groupalTasks: groupalTaskId });
     if (!globalTask) {
-      throw new NotFoundException(`Global Task with ID "${globalTaskId}" not found`);
+      throw new NotFoundException(`Global Task associated with Groupal Task "${groupalTaskId}" not found`);
     }
-
+  
     // Añadir el ID de la tarea normal al array de tareas en la tarea global
     globalTask.tasks.push(createdTask._id);
     await globalTask.save();
-
+  
     return createdTask;
   }
-
+  
   async getTaskById(taskId: string): Promise<Task> {
     // Buscar la tarea por su ID
     const task = await this.taskModel.findById(taskId).exec();
