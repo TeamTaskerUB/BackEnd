@@ -152,18 +152,25 @@ export class GroupalTasksService {
       throw new NotFoundException(`Groupal Task with ID "${groupalTaskId}" not found`);
     }
   
-    // Verificar si la tarea grupal tiene un administrador
-    if (!groupalTask.admin) {
-      throw new ForbiddenException('This groupal task does not have an admin assigned.');
+    // Verificar el rol del requester en la tarea global asociada
+    const globalTask = await this.globalTaskModel.findOne({ groupalTasks: groupalTaskId });
+    if (!globalTask) {
+      throw new NotFoundException(`Global Task associated with Groupal Task "${groupalTaskId}" not found`);
     }
   
-    // Verificar si el requester es el admin
-    if (groupalTask.admin.toString() !== requesterId) {
-      throw new ForbiddenException('Only the admin can add members to this groupal task.');
+    const userRole = await this.globalTasksService.getUserRoleInGlobalTask(globalTask._id.toString(), requesterId);
+  
+    // Permitir la acción solo si el requester es Group Admin o Project Manager
+    if (
+      groupalTask.admin?.toString() !== requesterId && // No es admin de la Groupal Task
+      userRole !== 'PManager' // No es Project Manager de la Global Task
+    ) {
+      throw new ForbiddenException('Only the group admin or project manager can add members to this groupal task.');
     }
   
     const userObjectId = new Types.ObjectId(userId); // Convertir userId a ObjectId
   
+    // Verificar si el usuario ya es miembro
     if (!groupalTask.members.includes(userObjectId)) {
       groupalTask.members.push(userObjectId); // Agregar como ObjectId
       await groupalTask.save();
