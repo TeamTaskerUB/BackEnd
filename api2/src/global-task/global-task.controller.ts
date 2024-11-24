@@ -31,6 +31,16 @@ export class GlobalTasksController {
     return this.globalTasksService.createGlobalTask(createGlobalTaskDto, user.userId);
   }
 
+  @UseGuards(JwtAuthGuard) // Protección con JWT
+  @Get(':id/groupal-tasks')
+  async getGroupalTasksByGlobalTaskId(
+    @Param('id') globalTaskId: string,
+    @Req() req: Request,
+  ) {
+    const userId = req.user.userId; // Usuario autenticado
+    return this.globalTasksService.getGroupalTasksByGlobalTaskId(userId, globalTaskId);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Delete('delete')
   async deleteGlobalTask( @Req() req: Request) {

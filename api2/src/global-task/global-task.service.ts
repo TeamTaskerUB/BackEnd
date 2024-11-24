@@ -36,6 +36,9 @@ export class GlobalTasksService {
         return 'GManager';
       }
     }
+
+
+
   
     
   
@@ -51,6 +54,34 @@ export class GlobalTasksService {
     // Si no es admin ni asignado en ninguna tarea, devolvemos 'noUser' o algún valor indicativo
     return 'noUser';
   }
+
+
+  async getGroupalTasksByGlobalTaskId(userId: string, globalTaskId: string) {
+    // Verificar el rol del usuario
+    const userRole = await this.getUserRoleInGlobalTask(globalTaskId, userId);
+    if (userRole === 'noUser') {
+      throw new ForbiddenException('No puedes acceder no siendo parte del proyecto');
+    }
+  
+    // Buscar la tarea global
+    const globalTask = await this.globalTaskModel.findById(globalTaskId).lean();
+    if (!globalTask) {
+      throw new NotFoundException(`Global Task with ID "${globalTaskId}" not found`);
+    }
+  
+    // Buscar las tareas grupales asociadas
+    const groupalTasks = await this.groupalTaskModel
+      .find({ _id: { $in: globalTask.groupalTasks } })
+      .select('_id name')
+      .lean();
+  
+    // Devolver el JSON directamente
+    return groupalTasks.map((task) => ({
+      id: task._id,
+      name: task.name,
+    }));
+  }
+  
   
 
   async getGlobalTaskById(globalTaskId: string): Promise<GlobalTask> {
