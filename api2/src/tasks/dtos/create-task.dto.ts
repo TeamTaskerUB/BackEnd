@@ -11,12 +11,13 @@ export class CreateTaskDto {
   @IsNotEmpty()
   description: string;
 
-  @IsDate()
-  @Type(() => Date)
+  @IsString()
+  @IsNotEmpty()
   startDate: Date;
 
-  @IsDate()
-  @Type(() => Date)
+
+  @IsString()
+  @IsNotEmpty()
   endDate: Date;
 
   @IsString()
