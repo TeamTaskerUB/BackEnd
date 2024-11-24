@@ -152,6 +152,12 @@ export class GroupalTasksService {
       throw new NotFoundException(`Groupal Task with ID "${groupalTaskId}" not found`);
     }
   
+    // Verificar si la tarea grupal tiene un administrador
+    if (!groupalTask.admin) {
+      throw new ForbiddenException('This groupal task does not have an admin assigned.');
+    }
+  
+    // Verificar si el requester es el admin
     if (groupalTask.admin.toString() !== requesterId) {
       throw new ForbiddenException('Only the admin can add members to this groupal task.');
     }
@@ -165,6 +171,7 @@ export class GroupalTasksService {
   
     return groupalTask;
   }
+  
   async removeMemberFromGroupalTask(groupalTaskId: string, userId: string, requesterId: string): Promise<GroupalTask> {
     const groupalTask = await this.groupalTaskModel.findById(groupalTaskId);
     if (!groupalTask) {
