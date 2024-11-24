@@ -2,6 +2,7 @@ import { IsString, IsNotEmpty, IsDate, IsArray, IsOptional, IsBoolean } from 'cl
 import { Type } from 'class-transformer';
 
 export class CreateTaskDto {
+
   @IsString()
   @IsNotEmpty()
   name: string;
@@ -25,6 +26,10 @@ export class CreateTaskDto {
   @IsString()
   @IsNotEmpty()
   groupalTaskId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  globalTaskId: string;
 
   @IsBoolean()
   @IsOptional()
