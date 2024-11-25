@@ -8,6 +8,18 @@ import { Request } from 'express';
 export class GroupalTasksController {
   constructor(private readonly groupalTasksService: GroupalTasksService) {}
 
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  async getGroupalTaskPreview(
+    @Param('id') groupalTaskId: string,
+    @Req() req: Request
+  ) {
+    const userId = req.user.userId;
+    return this.groupalTasksService.getGroupalTaskPreview(userId, groupalTaskId);
+  }
+
+
   @UseGuards(JwtAuthGuard) // Protegemos la ruta con JWT
   @Post('create/:globalTaskId')
   async createGroupalTask(

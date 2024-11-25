@@ -52,52 +52,42 @@ export class GroupalTasksService {
       throw new NotFoundException(`Groupal Task with ID "${groupalTaskId}" not found`);
     }
   
-    
-    // Obtener el administrador del equipo grupal
+    // Obtener detalles del administrador del equipo grupal
     const admin = groupalTask.admin
       ? await this.userModel.findById(groupalTask.admin).select('name email').lean()
       : null;
   
-    // Obtener los miembros del equipo grupal
+    // Obtener detalles de los miembros del equipo grupal
     const members = await this.userModel
       .find({ _id: { $in: groupalTask.members } })
       .select('name email')
       .lean();
   
-    // Obtener los detalles de las tareas (nombres y estado)
+    // Obtener las tareas asociadas (nombres y estados)
     const tasks = await this.taskModel
       .find({ _id: { $in: groupalTask.tasks } })
       .select('name status')
       .lean();
   
-    // Calcular el progreso del equipo grupal
+    // Calcular el progreso de las tareas grupales
     const totalTasks = tasks.length;
     const completedTasks = tasks.filter(task => task.status).length;
-  
     const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
   
-    // Mapear el rol del usuario
-    const roleMapping = {
-      PManager: 'ProjectAdmin',
-      GManager: 'GroupAdmin',
-      User: 'User',
-    };
-    
-  
+    // Generar la respuesta
     return {
       ...groupalTask,
       createdBy: admin ? admin.name : null,
       adminEmail: admin ? admin.email : null,
       members: {
         count: members.length,
-        list: members, // Lista con `name` y `email` de cada miembro
+        list: members, // Lista de miembros con `name` y `email`
       },
       tasks: {
         count: tasks.length,
-        list: tasks, // Lista con `name` y `status` de cada tarea
+        list: tasks, // Lista de tareas con `name` y `status`
       },
-      progress: progress.toFixed(2),
-      role: 1, // Rol de la persona que hace la solicitud
+      progress: progress.toFixed(2), // Porcentaje de progreso
     };
   }
   
