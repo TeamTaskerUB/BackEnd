@@ -141,10 +141,20 @@ export class GlobalTasksService {
       User: 'User',
     };
     const role = roleMapping[userRole] || 'User';
+
+    const tasks = await this.taskModel
+      .find({ _id: { $in: globalTask.tasks } })
+      .select('name status')
+      .lean();
+  
   
     return {
       ...globalTask,
       createdBy: admin.name,
+      tasks: {
+        count: tasks.length,
+        list: tasks, // Lista de tareas con `name` y `status`
+      },
       members: {
         count: members.length,
         list: members, // Lista con `name` y `email` de cada miembro
