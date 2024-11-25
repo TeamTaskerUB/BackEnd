@@ -84,8 +84,8 @@ export class GroupalTasksController {
     @Body('userId') userId: string,
     @Req() req: Request,
   ) {
-    const requesterId = req.user.userId; // Usuario que realiza la solicitud
-    return this.groupalTasksService.addMemberToGroupalTask(groupalTaskId, userId, requesterId);
+    // Usuario que realiza la solicitud
+    return this.groupalTasksService.addMemberToGroupalTask(groupalTaskId, userId);
   }
 
   // Ruta para eliminar un miembro de una Groupal Task
