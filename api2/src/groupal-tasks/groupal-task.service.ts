@@ -146,31 +146,15 @@ export class GroupalTasksService {
     return groupalTask;
   }
 
-  async addMemberToGroupalTask(groupalTaskId: string, userId: string, requesterId: string): Promise<GroupalTask> {
+  async addMemberToGroupalTask(groupalTaskId: string, userId: string): Promise<GroupalTask> {
     const groupalTask = await this.groupalTaskModel.findById(groupalTaskId);
     if (!groupalTask) {
       throw new NotFoundException(`Groupal Task with ID "${groupalTaskId}" not found`);
     }
   
-    // Verificar el rol del requester en la tarea global asociada
-    const globalTask = await this.globalTaskModel.findOne({ groupalTasks: groupalTaskId });
-    if (!globalTask) {
-      throw new NotFoundException(`Global Task associated with Groupal Task "${groupalTaskId}" not found`);
-    }
-  
-    const userRole = await this.globalTasksService.getUserRoleInGlobalTask(globalTask._id.toString(), requesterId);
-  
-    // Permitir la acción solo si el requester es Group Admin o Project Manager
-    if (
-      groupalTask.admin?.toString() !== requesterId && // No es admin de la Groupal Task
-      userRole !== 'PManager' // No es Project Manager de la Global Task
-    ) {
-      throw new ForbiddenException('Only the group admin or project manager can add members to this groupal task.');
-    }
-  
     const userObjectId = new Types.ObjectId(userId); // Convertir userId a ObjectId
   
-    // Verificar si el usuario ya es miembro
+    // Verificar si el usuario ya es miembro antes de agregar
     if (!groupalTask.members.includes(userObjectId)) {
       groupalTask.members.push(userObjectId); // Agregar como ObjectId
       await groupalTask.save();
