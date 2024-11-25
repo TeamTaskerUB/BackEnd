@@ -60,4 +60,14 @@ export class TasksController {
     // Llamamos al servicio para eliminar la tarea
     return this.tasksService.deleteTask(taskId);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/complete')
+  async completeTask(
+    @Param('id') taskId: string,
+    @Req() req: Request
+  ) {
+    return this.tasksService.completeTask(taskId);
+  }
+
 }

@@ -50,6 +50,21 @@ export class TasksService {
     return task;
   }
 
+
+  async completeTask(taskId: string): Promise<Task> {
+    // Buscar la tarea por su ID
+    const task = await this.taskModel.findById(taskId);
+    if (!task) {
+      throw new NotFoundException(`Task with ID "${taskId}" not found`);
+    }
+  
+    // Actualizar el status de la tarea a true
+    task.status = true;
+  
+    // Guardar la tarea actualizada
+    return task.save();
+  }
+  
   async assignAssigneesToTask(taskId: string, assignees: string[], userRole: string): Promise<Task> {
     // Verificar si el rol del usuario es 'PManager'
   

@@ -72,15 +72,35 @@ export class GlobalTasksService {
     // Buscar las tareas grupales asociadas
     const groupalTasks = await this.groupalTaskModel
       .find({ _id: { $in: globalTask.groupalTasks } })
-      .select('_id name')
+      .select('_id name description members tasks')
       .lean();
   
-    // Devolver el JSON directamente
-    return groupalTasks.map((task) => ({
-      id: task._id,
-      name: task.name,
-    }));
+    // Preparar los datos con los detalles adicionales
+    const groupalTasksDetails = await Promise.all(
+      groupalTasks.map(async (task) => {
+        const completedTasks = await this.taskModel.countDocuments({
+          _id: { $in: task.tasks },
+          status: true,
+        });
+        const pendingTasks = await this.taskModel.countDocuments({
+          _id: { $in: task.tasks },
+          status: false,
+        });
+  
+        return {
+          id: task._id,
+          name: task.name,
+          description: task.description,
+          membersCount: task.members.length,
+          completedTasks,
+          pendingTasks,
+        };
+      }),
+    );
+  
+    return groupalTasksDetails;
   }
+  
   
   
 
