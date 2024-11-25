@@ -144,7 +144,7 @@ export class GlobalTasksService {
 
     const tasks = await this.taskModel
       .find({ _id: { $in: globalTask.tasks } })
-      .select('name status')
+      .select('name status endDate')
       .lean();
   
   
