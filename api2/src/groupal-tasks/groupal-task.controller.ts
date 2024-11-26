@@ -62,10 +62,6 @@ export class GroupalTasksController {
     const user = req.user;
     console.log(user.role)
 
-    // Verificar si el usuario tiene permisos (debe ser Project Manager)
-    if (user.role !== 'PManager') {
-      throw new ForbiddenException('Only Project Managers can delete group tasks.');
-    }
 
     // Llamamos al servicio para eliminar la tarea grupal y sus tareas asociadas
     return this.groupalTasksService.deleteGroupalTask(groupalTaskId);

@@ -208,11 +208,7 @@ export class GlobalTasksService {
   }
 
   async deleteGlobalTask(globalTaskId: string, userId: string): Promise<void> {
-    const userRole = await this.getUserRoleInGlobalTask(globalTaskId, userId);
-    console.log(userRole);
-    if (userRole !== 'PManager') {
-      throw new ForbiddenException('No puedes acceder no siendo parte del proyecto');
-    }
+    
   
     const globalTask = await this.globalTaskModel.findById(globalTaskId);
     if (!globalTask) {

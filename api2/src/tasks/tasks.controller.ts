@@ -53,9 +53,7 @@ export class TasksController {
     const user = req.user;
 
     // Verificar si el usuario tiene permisos (por ejemplo, si es un Project Manager)
-    if (user.role !== 'PManager') {
-      throw new ForbiddenException('Only Project Managers can delete tasks.');
-    }
+    
 
     // Llamamos al servicio para eliminar la tarea
     return this.tasksService.deleteTask(taskId);
