@@ -1,6 +1,7 @@
 import { Controller, Post, Body, Param, UseGuards, NotFoundException, Get, Req, ForbiddenException, Delete } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dtos/create-task.dto';
+import { UpdateTaskDto } from './dtos/update-task.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Request } from 'express';
 
@@ -22,6 +23,15 @@ export class TasksController {
       throw new NotFoundException(`Task with ID "${id}" not found`);
     }
     return task;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id')
+  async updateTask(
+      @Param('id') taskId: string,
+      @Body() updateTaskDto: UpdateTaskDto
+  ) {
+      return this.tasksService.updateTask(taskId, updateTaskDto);
   }
 
   @UseGuards(JwtAuthGuard)

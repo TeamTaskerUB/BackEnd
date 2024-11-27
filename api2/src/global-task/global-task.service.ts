@@ -5,6 +5,7 @@ import { GlobalTask } from './schemas/global-task.schema';
 import { GroupalTask } from '../groupal-tasks/schemas/groupal-task.schema';
 import { Task } from '../tasks/schemas/task.schema';
 import { CreateGlobalTaskDto } from './dtos/create-global-task.dto';
+import { UpdateGlobalTaskDto } from './dtos/update-global-task.dto';
 import { UserService } from 'src/user/user.service';
 import { User } from 'src/user/schemas/user.schema';
 
@@ -205,6 +206,18 @@ export class GlobalTasksService {
     );
 
     return createdGlobalTask;
+  }
+
+  async updateGlobalTask(globalTaskId: string, updateGlobalTask: UpdateGlobalTaskDto): Promise<GlobalTask> {
+    const globalTask = await this.globalTaskModel.findById(globalTaskId);
+
+    if (!globalTask) {
+        throw new NotFoundException(`Groupal Task with ID "${globalTaskId}" not found`);
+    }
+
+    Object.assign(globalTask, updateGroupTaskDto);
+
+    return globalTask.save();
   }
 
   async deleteGlobalTask(globalTaskId: string, userId: string): Promise<void> {

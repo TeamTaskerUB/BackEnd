@@ -5,6 +5,7 @@ import { Task } from './schemas/task.schema';
 import { GroupalTask } from '../groupal-tasks/schemas/groupal-task.schema';
 import { GlobalTask } from '../global-task/schemas/global-task.schema';
 import { CreateTaskDto } from './dtos/create-task.dto';
+import { UpdateTaskDto } from './dtos/update-task.dto';
 import { User } from 'src/user/schemas/user.schema';
 
 @Injectable()
@@ -52,6 +53,17 @@ export class TasksService {
     return task;
   }
 
+  async updateTask(id: string, updateTaskDto: UpdateTaskDto): Promise<Task> {
+      const task = await this.taskModel.findById(taskId);
+
+      if (!task) {
+          throw new NotFoundException(`Task with ID "${id}" not found`);
+      }
+
+      Object.assign(task, updateTaskDto);
+
+      return task.save();
+  }
 
   async removeAssigneeFromTask(taskId: string, userId: string): Promise<Task> {
     // Validar que los IDs sean válidos ObjectId

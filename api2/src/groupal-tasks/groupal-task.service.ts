@@ -4,6 +4,7 @@ import { Model, Types } from 'mongoose';
 import { GroupalTask } from './schemas/groupal-task.schema';
 import { GlobalTask } from '../global-task/schemas/global-task.schema';
 import { CreateGroupalTaskDto } from './dtos/create-gruopal-task.dto';
+import { UpdateGroupTaskDto } from './dtos/update-group-task.dto';
 import { Task } from 'src/tasks/schemas/task.schema';
 import { GlobalTasksService } from 'src/global-task/global-task.service';
 import { User } from 'src/user/schemas/user.schema';
@@ -44,6 +45,19 @@ export class GroupalTasksService {
     await globalTask.save();
 
     return createdGroupalTask;
+  }
+
+  async updateGroupTask(groupalTaskId: string, updateGroupTaskDto: UpdateGroupTaskDto): Promise<GroupalTask> {
+      const groupalTask = await this.groupalTaskModel.findById(groupalTaskId);
+
+      if (!groupalTask) {
+        throw new NotFoundException(`Groupal Task with ID "${groupalTaskId}" not found`);
+      }
+
+      // Actualizar solo los campos proporcionados en el DTO
+      Object.assign(groupalTask, updateGroupTaskDto);
+
+      return groupalTask.save();
   }
 
   async getGroupalTaskPreview(userId: string, groupalTaskId: string) {

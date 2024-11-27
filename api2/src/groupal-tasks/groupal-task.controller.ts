@@ -1,6 +1,7 @@
 import { Controller, Post, Body, Param, UseGuards, Get, NotFoundException, Req, ForbiddenException, Delete } from '@nestjs/common';
 import { GroupalTasksService } from './groupal-task.service';
 import { CreateGroupalTaskDto } from './dtos/create-gruopal-task.dto';
+import { UpdateGroupTaskDto } from './dtos/update-group-task.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Request } from 'express';
 
@@ -34,7 +35,14 @@ export class GroupalTasksController {
     return this.groupalTasksService.createGroupalTask(globalTaskId, createGroupalTaskDto, userId);
   }
 
-
+  @UseGuards(JwtAuthGuard) // Protegemos la ruta con JWT
+  @Patch(':id')
+  async updateGroupalTask(
+    @Param('id') groupTaskId: string, // ID de la tarea grupal
+    @Body() updateGroupTaskDto: UpdateGroupTaskDto
+  ) {
+        return this.groupalTasksService.updateGroupTask(groupTaskId, updateGroupTaskDto);
+  }
 
   @UseGuards(JwtAuthGuard)
   @Post('assign-admin/:id')

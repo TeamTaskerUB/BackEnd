@@ -2,6 +2,7 @@ import { Body, Controller, Delete, ForbiddenException, Get, Param, Post, Req, Us
 import { GlobalTasksService } from './global-task.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CreateGlobalTaskDto } from './dtos/create-global-task.dto';
+import { UpdateGlobalTaskDto } from './dtos/update-global-task.dto';
 import { Request } from 'express';
 
 @Controller('global-tasks')
@@ -29,6 +30,15 @@ export class GlobalTasksController {
     const user = req.user;
     // Llamamos al servicio para crear la tarea global
     return this.globalTasksService.createGlobalTask(createGlobalTaskDto, user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id')
+  async updateGlobalTask(
+      @Param('id') globalTaskId: string,
+      @Body() updateGlobalTask: UpdateGlobalTaskDto
+  ) {
+    return this.globalTasksService.updateGlobalTask(globalTaskId, updateGlobalTask)
   }
 
   @UseGuards(JwtAuthGuard) // Protección con JWT
