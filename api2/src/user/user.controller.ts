@@ -1,9 +1,10 @@
-import { BadRequestException, Body, Controller, Get, NotFoundException, Param, Post, Req, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, NotFoundException, Param, Post, Put, Req, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/user.dto';
 import { get } from 'mongoose';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Request } from 'express';
+import { ChangePasswordDto } from './dto/changepassword.dto';
 
 @Controller('user')
 export class UserController {
@@ -55,6 +56,27 @@ export class UserController {
     }
 
     return users;
+  }
+
+  @UseGuards(JwtAuthGuard) // Proteger la ruta con autenticación JWT
+  @Put('modify')
+  async modifyUser(
+    @Req() req: Request,
+    @Body() updateData: { name?: string; email?: string; skills?: string[]; photoBase64?: string }
+  ) {
+    const userId = req.user.userId.toString(); // Obtener el ID del usuario del JWT
+
+    return this.userService.modifyUser(userId, updateData);
+  }
+
+  @Post('change-password')
+  @UsePipes(new ValidationPipe())
+  async changePassword(
+    @Req() req: Request,
+    @Body() body: ChangePasswordDto,
+  ) {
+    const userId = req.user.userId;
+    return this.userService.changePassword(userId, body.currentPassword, body.newPassword);
   }
 
 

@@ -114,10 +114,10 @@ export class TasksService {
     if (!task) {
       throw new NotFoundException(`Task with ID "${taskId}" not found`);
     }
-  
-    // Actualizar el status de la tarea a true
-    task.status = true;
-  
+
+    // Alternar el estado de la tarea
+    task.status = !task.status;
+
     // Guardar la tarea actualizada
     return task.save();
   }

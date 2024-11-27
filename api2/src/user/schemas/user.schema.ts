@@ -18,6 +18,12 @@ export class User {
 
     @Prop({ type: [{ type: Types.ObjectId, ref: 'Proyect' }], default: [] })
     tasks: Types.ObjectId[]; // Referencia a una colección de proyectos
+
+    @Prop({ default: '' }) // Campo para almacenar la foto en Base64
+    photo: string;
+
+    @Prop({ default: [] })
+    skills: string[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

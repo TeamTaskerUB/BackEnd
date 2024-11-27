@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException, RequestTimeoutException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException, RequestTimeoutException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from './schemas/user.schema';
 import { Model, Types } from 'mongoose';
@@ -61,8 +61,48 @@ export class UserService {
       }
     
 
-
+      async modifyUser(userId: string, updateData: { name?: string; email?: string; skills?: string[]; photoBase64?: string }): Promise<User> {
+        const user = await this.userModel.findById(userId);
     
+        if (!user) {
+          throw new NotFoundException(`User with ID "${userId}" not found`);
+        }
+    
+        // Actualizar los valores si existen
+        if (updateData.name) user.name = updateData.name;
+        if (updateData.email) user.email = updateData.email;
+        if (updateData.skills) user.skills = updateData.skills;
+        if (updateData.photoBase64) user.photo = updateData.photoBase64; // Asumiendo que `photo` es un campo de la base de datos
+    
+        await user.save();
+    
+        return user;
+      }
+
+      
+      async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<string> {
+        // Buscar el usuario por su ID
+        const user = await this.userModel.findById(userId);
+        if (!user) {
+          throw new NotFoundException(`User with ID "${userId}" not found`);
+        }
+      
+        // Verificar si la contraseña actual coincide
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+          throw new ForbiddenException('Current password is incorrect');
+        }
+      
+        // Hashear la nueva contraseña
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+      
+        // Actualizar la contraseña del usuario
+        user.password = hashedPassword;
+        await user.save();
+      
+        return 'Password updated successfully';
+      }
+      
 
    
 

@@ -237,7 +237,7 @@ export class GlobalTasksService {
     );
   }
 
-  async getUserGlobalTasks(userId: string): Promise<GlobalTask[]> {
+  async getUserGlobalTasks(userId: string): Promise<any[]> {
     // Obtener el usuario y sus IDs de tareas
     const user = await this.userModel.findById(userId).exec();
     if (!user) {
@@ -245,8 +245,22 @@ export class GlobalTasksService {
     }
   
     // Buscar todas las Global Tasks usando los IDs obtenidos del usuario
-    return this.globalTaskModel.find({ _id: { $in: user.tasks } }).exec();
+    const globalTasks = await this.globalTaskModel.find({ _id: { $in: user.tasks } }).lean();
+  
+    // Añadir el nombre del administrador a cada tarea
+    const tasksWithAdminDetails = await Promise.all(
+      globalTasks.map(async (task) => {
+        const admin = await this.userModel.findById(task.admin).select('name').lean();
+        return {
+          ...task,
+          adminName: admin?.name || 'Unknown Admin', // Incluye el nombre del admin
+        };
+      }),
+    );
+  
+    return tasksWithAdminDetails;
   }
+  
   
 async addMemberToGlobalTask(globalTaskId: string, userId: string, requesterId: string): Promise<GlobalTask> {
   const globalTask = await this.globalTaskModel.findById(globalTaskId);
