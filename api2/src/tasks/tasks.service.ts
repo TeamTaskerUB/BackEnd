@@ -106,7 +106,7 @@ export class TasksService {
     return task.save();
   }
   
-  async assignAssigneesToTask(taskId: string, assignees: string[], userRole: string): Promise<Task> {
+  async assignAssigneesToTask(taskId: string, assignees: string[]): Promise<Task> {
     // Verificar si el rol del usuario es 'PManager'
   
     // Buscar la tarea por su ID

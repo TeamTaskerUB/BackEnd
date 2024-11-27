@@ -31,20 +31,13 @@ export class TasksController {
     @Body('assignees') assignees: string[],
     @Req() req: Request
   ) {
-    const user = req.user; // Obtenemos el usuario desde el JWT
+    
 
-    // Verificar si el usuario es 'PManager'
-    if (user.role !== 'PManager') {
-      if (user.role !== 'GManager') {
-        throw new ForbiddenException('Only Project Managers or Gruopal Managers can assign assignees to tasks.');
-      }
-  
-    }
 
     
 
     // Llamamos al servicio para asignar los assignees
-    return this.tasksService.assignAssigneesToTask(taskId, assignees, user.role);
+    return this.tasksService.assignAssigneesToTask(taskId, assignees);
   }
 
 
@@ -68,7 +61,7 @@ export class TasksController {
     return assignees;
   }
 
-  
+
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async deleteTask(@Param('id') taskId: string, @Req() req: Request) {
