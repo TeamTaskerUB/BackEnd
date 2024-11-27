@@ -10,7 +10,22 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
-
+  
+      async searchUsersByName(name: string) {
+        const users = await this.userModel
+          .find({ name: { $regex: name, $options: 'i' } }) // Case-insensitive search
+          .select('_id name') // Only return `id` and `name`
+          .lean();
+        
+        if (!users || users.length === 0) {
+          throw new NotFoundException('No users found with the given name.');
+        }
+        
+        return users.map(user => ({
+          id: user._id,
+          name: user.name,
+        }));
+      }
 
     
     async getUserByEmail(email: string) {

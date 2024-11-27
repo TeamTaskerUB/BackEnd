@@ -38,7 +38,19 @@ export class UserController {
     return user;  // Devolver los datos del usuario
   }
     
+  @Post('search')
+  async searchUsersByName(@Body('name') name: string) {
+    if (!name) {
+      throw new NotFoundException('Please provide a name to search.');
+    }
 
+    const users = await this.userService.searchUsersByName(name);
+    if (!users.length) {
+      throw new NotFoundException('No users found with the given name.');
+    }
+
+    return users;
+  }
 
 
    

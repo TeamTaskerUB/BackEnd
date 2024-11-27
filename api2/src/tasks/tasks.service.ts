@@ -5,6 +5,7 @@ import { Task } from './schemas/task.schema';
 import { GroupalTask } from '../groupal-tasks/schemas/groupal-task.schema';
 import { GlobalTask } from '../global-task/schemas/global-task.schema';
 import { CreateTaskDto } from './dtos/create-task.dto';
+import { User } from 'src/user/schemas/user.schema';
 
 @Injectable()
 export class TasksService {
@@ -12,6 +13,7 @@ export class TasksService {
     @InjectModel(Task.name) private readonly taskModel: Model<Task>,
     @InjectModel(GroupalTask.name) private readonly groupalTaskModel: Model<GroupalTask>,
     @InjectModel(GlobalTask.name) private readonly globalTaskModel: Model<GlobalTask>,
+    @InjectModel(User.name) private readonly userModel: Model<User>
   ) {}
 
   async createTask(createTaskDto: CreateTaskDto): Promise<Task> {
@@ -48,6 +50,45 @@ export class TasksService {
       throw new NotFoundException(`Task with ID "${taskId}" not found`);
     }
     return task;
+  }
+
+
+  async removeAssigneeFromTask(taskId: string, userId: string): Promise<Task> {
+    const task = await this.taskModel.findById(taskId);
+    if (!task) {
+      throw new NotFoundException(`Task with ID "${taskId}" not found`);
+    }
+
+    const userObjectId = new Types.ObjectId(userId);
+    const isAssigned = task.assignees.includes(userObjectId);
+
+    if (!isAssigned) {
+      throw new NotFoundException(`User with ID "${userId}" is not assigned to this task`);
+    }
+
+    task.assignees = task.assignees.filter(
+      (assigneeId) => assigneeId.toString() !== userId
+    );
+
+    return task.save();
+  }
+
+  // Método para obtener todos los asignados a una tarea con nombre e id
+  async getTaskAssignees(taskId: string): Promise<{ id: string; name: string }[]> {
+    const task = await this.taskModel.findById(taskId).lean();
+    if (!task) {
+      throw new NotFoundException(`Task with ID "${taskId}" not found`);
+    }
+
+    const assignees = await this.userModel
+      .find({ _id: { $in: task.assignees } })
+      .select('_id name')
+      .lean();
+
+    return assignees.map((assignee) => ({
+      id: assignee._id.toString(),
+      name: assignee.name,
+    }));
   }
 
 

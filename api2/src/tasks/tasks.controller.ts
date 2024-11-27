@@ -47,6 +47,28 @@ export class TasksController {
     return this.tasksService.assignAssigneesToTask(taskId, assignees, user.role);
   }
 
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id/remove-assignee')
+  async removeAssigneeFromTask(
+    @Param('id') taskId: string,
+    @Body('userId') userId: string
+  ) {
+    return this.tasksService.removeAssigneeFromTask(taskId, userId);
+  }
+
+  // Ruta para obtener todos los asignados a una tarea con su nombre e id
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/assignees')
+  async getTaskAssignees(@Param('id') taskId: string) {
+    const assignees = await this.tasksService.getTaskAssignees(taskId);
+    if (!assignees || assignees.length === 0) {
+      throw new NotFoundException(`No assignees found for task with ID "${taskId}"`);
+    }
+    return assignees;
+  }
+
+  
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async deleteTask(@Param('id') taskId: string, @Req() req: Request) {
