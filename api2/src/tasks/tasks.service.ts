@@ -54,37 +54,53 @@ export class TasksService {
 
 
   async removeAssigneeFromTask(taskId: string, userId: string): Promise<Task> {
+    // Validar que los IDs sean válidos ObjectId
+    if (!Types.ObjectId.isValid(taskId)) {
+      throw new NotFoundException(`Invalid task ID: "${taskId}"`);
+    }
+  
+    if (!Types.ObjectId.isValid(userId)) {
+      throw new NotFoundException(`Invalid user ID: "${userId}"`);
+    }
+  
     const task = await this.taskModel.findById(taskId);
     if (!task) {
       throw new NotFoundException(`Task with ID "${taskId}" not found`);
     }
-
+  
     const userObjectId = new Types.ObjectId(userId);
-    const isAssigned = task.assignees.includes(userObjectId);
-
+    const isAssigned = task.assignees.some((assigneeId) =>
+      assigneeId.equals(userObjectId)
+    );
+  
     if (!isAssigned) {
       throw new NotFoundException(`User with ID "${userId}" is not assigned to this task`);
     }
-
+  
+    // Filtrar el usuario de la lista de asignados
     task.assignees = task.assignees.filter(
-      (assigneeId) => assigneeId.toString() !== userId
+      (assigneeId) => !assigneeId.equals(userObjectId)
     );
-
+  
     return task.save();
   }
-
-  // Método para obtener todos los asignados a una tarea con nombre e id
+  
+  
   async getTaskAssignees(taskId: string): Promise<{ id: string; name: string }[]> {
+    if (!Types.ObjectId.isValid(taskId)) {
+      throw new NotFoundException(`Invalid task ID: "${taskId}"`);
+    }
+  
     const task = await this.taskModel.findById(taskId).lean();
     if (!task) {
       throw new NotFoundException(`Task with ID "${taskId}" not found`);
     }
-
+  
     const assignees = await this.userModel
       .find({ _id: { $in: task.assignees } })
       .select('_id name')
       .lean();
-
+  
     return assignees.map((assignee) => ({
       id: assignee._id.toString(),
       name: assignee.name,

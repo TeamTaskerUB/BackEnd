@@ -27,8 +27,13 @@ export class UserController {
 
     @UseGuards(JwtAuthGuard)  // Asegurarte de que el usuario está autenticado
   @Get(':id')
-  async getUserById(@Param('id') id: string) {
-    const user = await this.userService.getUserById(id);
+  async getUserById(@Param('id') id: string, @Req() req: Request) {
+    
+
+    const userId = req.user.userId.toString();
+    const user = await this.userService.getUserById(userId);
+
+
 
     // Si no se encuentra el usuario, lanzamos una excepción
     if (!user) {

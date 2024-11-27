@@ -42,10 +42,10 @@ export class TasksController {
 
 
   @UseGuards(JwtAuthGuard)
-  @Delete(':id/remove-assignee')
+  @Post(':taskId/remove-assignee')
   async removeAssigneeFromTask(
-    @Param('id') taskId: string,
-    @Body('userId') userId: string
+    @Param('taskId') taskId: string, // Recibe el ID de la tarea desde los parámetros
+    @Body('userId') userId: string // Recibe el userId desde el cuerpo
   ) {
     return this.tasksService.removeAssigneeFromTask(taskId, userId);
   }
