@@ -289,25 +289,45 @@ export class GlobalTasksService {
   }
   
   
-async addMemberToGlobalTask(globalTaskId: string, userId: string, requesterId: string): Promise<GlobalTask> {
-  const globalTask = await this.globalTaskModel.findById(globalTaskId);
-  if (!globalTask) {
-    throw new NotFoundException(`Global Task with ID "${globalTaskId}" not found`);
+  async addMemberToGlobalTask(globalTaskId: string, userId: string, requesterId: string): Promise<GlobalTask> {
+    // Buscar la tarea global
+    const globalTask = await this.globalTaskModel.findById(globalTaskId);
+    if (!globalTask) {
+      throw new NotFoundException(`Global Task with ID "${globalTaskId}" not found`);
+    }
+  
+    // Verificar si el requester es el administrador de la tarea global
+    if (globalTask.admin.toString() !== requesterId) {
+      throw new ForbiddenException('Only the admin can add members to this global task.');
+    }
+  
+    // Convertir el userId a ObjectId
+    const userObjectId = new Types.ObjectId(userId);
+  
+    // Verificar si el usuario ya es miembro de la tarea global
+    if (!globalTask.members.includes(userObjectId)) {
+      globalTask.members.push(userObjectId); // Agregar como ObjectId
+      await globalTask.save();
+    }
+  
+    // Buscar el usuario
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new NotFoundException(`User with ID "${userId}" not found`);
+    }
+  
+    // Convertir el globalTask._id a un string antes de crear el ObjectId
+    const globalTaskObjectId = new Types.ObjectId(globalTask._id.toString());
+  
+    // Verificar si la tarea global ya está en el array de tasks del usuario
+    if (!user.tasks.some(taskId => taskId.equals(globalTaskObjectId))) {
+      user.tasks.push(globalTaskObjectId); // Agregar el ID de la tarea global al array de tasks del usuario
+      await user.save();
+    }
+  
+    return globalTask;
   }
-
-  if (globalTask.admin.toString() !== requesterId) {
-    throw new ForbiddenException('Only the admin can add members to this global task.');
-  }
-
-  const userObjectId = new Types.ObjectId(userId); // Convertir userId a ObjectId
-
-  if (!globalTask.members.includes(userObjectId)) {
-    globalTask.members.push(userObjectId); // Agregar como ObjectId
-    await globalTask.save();
-  }
-
-  return globalTask;
-}
+  
   
 async removeMemberFromGlobalTask(globalTaskId: string, userId: string, requesterId: string): Promise<GlobalTask> {
   const globalTask = await this.globalTaskModel.findById(globalTaskId);
