@@ -25,11 +25,6 @@ export class GroupalTasksService {
       status: false,
     });
 
-    const userRole = await this.globalTasksService.getUserRoleInGlobalTask(globalTaskId, userId);
-    console.log(userRole);
-    if (userRole !== 'PManager') {
-    throw new ForbiddenException('No puedes crear una tarea grupal si ser el PM');
-    }
 
 
 
