@@ -18,43 +18,9 @@ export class GlobalTasksService {
     private readonly userService: UserService
   ) {}
 
-  async getUserRoleInGlobalTask(globalTaskId: string, userId: string): Promise<string> {
-    const globalTask = await this.globalTaskModel.findById(globalTaskId).exec();
-    if (!globalTask) {
-      throw new NotFoundException(`Global Task with ID "${globalTaskId}" not found`);
-    }
   
-    // Verificar si el usuario es administrador de la tarea global
-    if (globalTask.admin.toString() === userId) {
-      return 'PManager';
-    }
-  
-    // Verificar si el usuario es administrador de alguna tarea grupal adyacente
-    for (const groupalTaskId of globalTask.groupalTasks) {
-      const groupalTask = await this.groupalTaskModel.findById(groupalTaskId).exec();
-      if (groupalTask && groupalTask.admin && groupalTask.admin.toString() === userId) {
-        return 'GManager';
-      }
-    }
-
-
 
   
-    
-  
-  
-    // Verificar si el usuario está asignado en alguna tarea individual
-    const tasks = await this.taskModel.find({ _id: { $in: globalTask.tasks } }).exec();
-    for (const task of tasks) {
-      if (task.assignees.some(assigneeId => assigneeId.toString() === userId)) {
-        return 'User';
-      }
-    }
-  
-    // Si no es admin ni asignado en ninguna tarea, devolvemos 'noUser' o algún valor indicativo
-    return 'noUser';
-  }
-
 
   async getGroupalTasksByGlobalTaskId(userId: string, globalTaskId: string) {
     // Verificar el rol del usuario
@@ -156,7 +122,7 @@ export class GlobalTasksService {
   
     const globalTask = await this.globalTaskModel.findById(globalTaskId).lean();
     if (!globalTask) {
-      throw new NotFoundException(`Global Task with ID "${globalTaskId}" not found`);
+      throw new NotFoundException(`Global Task with pene "${globalTaskId}" not found`);
     }
   
 
@@ -181,7 +147,8 @@ export class GlobalTasksService {
       GManager: 'GroupAdmin',
       User: 'User',
     };
-    const role = roleMapping[userRole] || 'User';
+
+    const role = await this.getUserRoleInGlobalTask(userId,globalTaskId)
 
     const tasks = await this.taskModel
       .find({ _id: { $in: globalTask.tasks } })
@@ -353,6 +320,37 @@ async removeMemberFromGlobalTask(globalTaskId: string, userId: string, requester
   }
 
   return globalTask;
+}
+
+async getUserRoleInGlobalTask(globalTaskId: string, userId: string): Promise<string> {
+  
+  // Buscar la GlobalTask por su ObjectId
+  const globalTask = await this.globalTaskModel.findById(globalTaskId).lean();
+  if (!globalTask) {
+    throw new NotFoundException(`Global Task with pene "${globalTaskId}" not found`);
+  }
+  // Verificar si el usuario es admin de la GlobalTask (como string)
+  if (globalTask.admin.toString() === userId) {
+    return 'ProjectAdmin';
+  }
+
+  // Verificar si el usuario es admin de alguna GroupalTask asociada
+  const groupalTasks = await this.groupalTaskModel.find({ globalTaskId: globalTaskId });
+  const isGroupAdmin = groupalTasks.some((groupalTask) =>
+    groupalTask.admin.toString() === userId,
+  );
+  if (isGroupAdmin) {
+    return 'GroupAdmin';
+  }
+
+  // Verificar si el usuario está en el array `members` (comparación como string)
+  const isMember = globalTask.members.some((memberId) => memberId.toString() === userId);
+  if (isMember) {
+    return 'User';
+  }
+
+  // Si no es ProjectAdmin, GroupAdmin o miembro
+  return 'noUser';
 }
 
 }
