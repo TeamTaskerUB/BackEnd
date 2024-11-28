@@ -105,25 +105,43 @@ export class GroupalTasksService {
   }
 
   async deleteGroupalTask(groupalTaskId: string): Promise<void> {
+    // Buscar la Groupal Task
     const groupalTask = await this.groupalTaskModel.findById(groupalTaskId);
     if (!groupalTask) {
       throw new NotFoundException(`Groupal Task with ID "${groupalTaskId}" not found`);
     }
-
+  
+    // Obtener la Global Task asociada
+    const globalTask = await this.globalTaskModel.findOne({ groupalTasks: groupalTaskId });
+    if (!globalTask) {
+      throw new NotFoundException(`Global Task associated with Groupal Task "${groupalTaskId}" not found`);
+    }
+  
+    // Eliminar todas las tareas individuales asociadas a la Groupal Task
     for (const taskId of groupalTask.tasks) {
       await this.taskModel.deleteOne({ _id: taskId });
-      await this.globalTaskModel.updateOne(
-        { tasks: taskId },
-        { $pull: { tasks: taskId } }
+  
+      // Eliminar los IDs de tareas individuales de la Global Task
+      globalTask.tasks = globalTask.tasks.filter(
+        (globalTaskId) => globalTaskId.toString() !== taskId.toString(),
       );
     }
-
-    await this.groupalTaskModel.deleteOne({ _id: groupalTaskId });
-    await this.globalTaskModel.updateOne(
-      { groupalTasks: groupalTaskId },
-      { $pull: { groupalTasks: groupalTaskId } }
+  
+    // Guardar los cambios en la Global Task
+    await globalTask.save();
+  
+    // Eliminar el ID de la Groupal Task de la Global Task
+    globalTask.groupalTasks = globalTask.groupalTasks.filter(
+      (gTaskId) => gTaskId.toString() !== groupalTaskId.toString(),
     );
+  
+    // Guardar nuevamente la Global Task
+    await globalTask.save();
+  
+    // Eliminar la Groupal Task
+    await this.groupalTaskModel.deleteOne({ _id: groupalTaskId });
   }
+  
 
   async removeAdminFromGroupalTask(groupalTaskId: string): Promise<GroupalTask> {
     const groupalTask = await this.groupalTaskModel.findById(groupalTaskId);
