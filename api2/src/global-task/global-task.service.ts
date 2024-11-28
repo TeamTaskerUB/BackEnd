@@ -112,6 +112,40 @@ export class GlobalTasksService {
     return globalTask;
   }
 
+
+  async getProgress(globalTaskId: string){
+
+
+    const globalTask = await this.globalTaskModel.findById(globalTaskId).lean();
+    if (!globalTask) {
+      throw new NotFoundException(`Global Task with ID "${globalTaskId}" not found`);
+    }
+
+     // Calcular el porcentaje de avance del proyecto
+     const totalTasks = globalTask.tasks.length;
+     const completedTasks = await this.taskModel.countDocuments({
+       _id: { $in: globalTask.tasks },
+       status: true,
+     });
+   
+     const totalGroupalTasks = globalTask.groupalTasks.length;
+     const completedGroupalTasks = await this.groupalTaskModel.countDocuments({
+       _id: { $in: globalTask.groupalTasks },
+       status: true,
+     });
+   
+     const totalItems = totalTasks + totalGroupalTasks;
+     const completedItems = completedTasks + completedGroupalTasks;
+     const progress = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
+
+
+     return progress
+   
+
+
+
+  }
+
   
   async getGlobalTaskPreview(userId: string, globalTaskId: string) {
     const userRole = await this.getUserRoleInGlobalTask(globalTaskId, userId);
@@ -125,6 +159,8 @@ export class GlobalTasksService {
       throw new NotFoundException(`Global Task with ID "${globalTaskId}" not found`);
     }
   
+
+    const progress = await this.getProgress(globalTaskId);
     // Obtener el administrador del proyecto
     const admin = await this.userModel.findById(globalTask.admin).select('name').lean();
     if (!admin) {
@@ -137,22 +173,7 @@ export class GlobalTasksService {
       .select('name email')
       .lean();
   
-    // Calcular el porcentaje de avance del proyecto
-    const totalTasks = globalTask.tasks.length;
-    const completedTasks = await this.taskModel.countDocuments({
-      _id: { $in: globalTask.tasks },
-      status: true,
-    });
-  
-    const totalGroupalTasks = globalTask.groupalTasks.length;
-    const completedGroupalTasks = await this.groupalTaskModel.countDocuments({
-      _id: { $in: globalTask.groupalTasks },
-      status: true,
-    });
-  
-    const totalItems = totalTasks + totalGroupalTasks;
-    const completedItems = completedTasks + completedGroupalTasks;
-    const progress = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
+    
   
     // Mapear el rol del usuario que hace la solicitud
     const roleMapping = {
@@ -247,13 +268,19 @@ export class GlobalTasksService {
     // Buscar todas las Global Tasks usando los IDs obtenidos del usuario
     const globalTasks = await this.globalTaskModel.find({ _id: { $in: user.tasks } }).lean();
   
-    // Añadir el nombre del administrador a cada tarea
+    // Añadir el nombre del administrador y el progreso a cada tarea
     const tasksWithAdminDetails = await Promise.all(
       globalTasks.map(async (task) => {
+        // Obtener el nombre del administrador
         const admin = await this.userModel.findById(task.admin).select('name').lean();
+  
+        // Obtener el progreso usando el método getProgress
+        const progress = await this.getProgress(task._id.toString());
+  
         return {
           ...task,
-          adminName: admin?.name || 'Unknown Admin', // Incluye el nombre del admin
+          creator: admin?.name || 'Unknown Admin', // Incluye el nombre del admin
+          progress: progress, // Usa el progreso calculado por getProgress
         };
       }),
     );
