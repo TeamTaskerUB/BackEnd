@@ -98,14 +98,10 @@ export class GlobalTasksService {
       status: true,
     });
 
-    const totalGroupalTasks = globalTask.groupalTasks.length;
-    const completedGroupalTasks = await this.groupalTaskModel.countDocuments({
-      _id: { $in: globalTask.groupalTasks },
-      status: true,
-    });
+    
 
-    const totalItems = totalTasks + totalGroupalTasks;
-    const completedItems = completedTasks + completedGroupalTasks;
+    const totalItems = totalTasks 
+    const completedItems = completedTasks 
     const progress = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
 
     return progress;
