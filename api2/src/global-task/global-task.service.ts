@@ -116,17 +116,18 @@ export class GlobalTasksService {
             "No puedes acceder no siendo parte del proyecto"
           );
         }
-
+  
         const globalTask = await this.globalTaskModel
           .findById(globalTaskId)
           .lean();
         if (!globalTask) {
           throw new NotFoundException(
-            `Global Task with  "${globalTaskId}" not found`
+            `Global Task with ID "${globalTaskId}" not found`
           );
         }
-
+  
         const progress = await this.getProgress(globalTaskId);
+  
         // Obtener el administrador del proyecto
         const admin = await this.userModel
           .findById(globalTask.admin)
@@ -135,33 +136,34 @@ export class GlobalTasksService {
         if (!admin) {
           throw new NotFoundException("Admin not found");
         }
-
+  
         // Obtener los miembros del proyecto (nombre y correo)
         const members = await this.userModel
           .find({ _id: { $in: globalTask.members } })
           .select("name email")
           .lean();
-
-        // Mapear el rol del usuario que hace la solicitud
-        const roleMapping = {
-          PManager: "ProjectAdmin",
-          GManager: "GroupAdmin",
-          User: "User",
-        };
-
-        const role = await this.getUserRoleInGlobalTask(globalTaskId, userId);
-
-        const tasks = await this.taskModel
+  
+        // Obtener todas las tareas de la tarea global
+        let tasks = await this.taskModel
           .find({ _id: { $in: globalTask.tasks } })
-          .select("name status description endDate")
+          .select("name status description endDate assignees")
           .lean();
-
+  
+        // Filtrar las tareas si el rol es "User"
+        if (userRole === "User") {
+          tasks = tasks.filter((task) =>
+            task.assignees.some(
+              (assigneeId) => assigneeId.toString() === userId
+            )
+          );
+        }
+  
         res = {
           ...globalTask,
           createdBy: admin.name,
           tasks: {
             count: tasks.length,
-            list: tasks, // Lista de tareas con `name` y `status`
+            list: tasks, // Lista de tareas filtrada si es necesario
           },
           members: {
             count: members.length,
@@ -169,12 +171,13 @@ export class GlobalTasksService {
           },
           teams: globalTask.groupalTasks.length,
           progress: progress,
-          role: role, // Rol de la persona que hace la solicitud
+          role: userRole, // Rol de la persona que hace la solicitud
         };
       }
     );
     return res;
   }
+  
 
   async createGlobalTask(
     createGlobalTaskDto: CreateGlobalTaskDto,
